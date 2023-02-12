@@ -666,8 +666,6 @@
                                 (assoc :thumbnail (or (:new-thumbnail @item)
                                                       (-> @item :attributes :thumbnail :data :id))))
                   res (<p! (update-resource "blueprints" to-submit (:id @item)))]
-              (pprint "Updated!")
-              (pprint res)
               (go-to (str "/blueprints/" (-> res :data :attributes :slug))))))]
     (r/create-class
      {:component-did-mount
@@ -834,7 +832,15 @@
     [:a
      {:href "mailto:hello@captains-haven.org"
       :target "_blank"}
-     "hello@captains-haven.org"]]])
+     "hello@captains-haven.org"]]
+   [:div
+    [:pre
+     "Revision: " js/globals.revision "\n"
+     "App version: " js/globals.version "\n"
+     "Last update: " js/globals.last_update "\n"
+     "Node.js version: " js/globals.node_version "\n"
+     "npm version: " js/globals.npm_version "\n"
+     "shadow-cljs version: " js/globals.shadow_cljs_version "\n"]]])
 
 (defn $privacy-policy-page []
   [:div
