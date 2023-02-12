@@ -22,8 +22,10 @@
 
 (def $debug portal.components.debug/$debug)
 
-(def ns-list
-  '[portal.components.link])
+(def components-map
+  {"portal.components.link/$link" portal.components.link/$link
+   "portal.components.error/$error" portal.components.error/$error
+   "portal.components.debug/$debug" portal.components.debug/$debug})
 
 (defn only-components [m]
   (into
@@ -65,6 +67,7 @@
 (def app-state
   (r/atom {}))
 
+
 (def router
   (bide/router [["/home" ::home]
                 ["/components/:key" ::components]]))
@@ -88,14 +91,78 @@
          n]]))
     (list-components))])
 
+(comment
+  (def metadata (get
+                 (list-components)
+                 (.decodeURIComponent js/window "portal.components.link%2F%24link")))
+  (var (resolve (symbol (:ns metadata) (:name metadata)))))
+
+(def default-args
+  {:string "Example String"
+   :edn {:key "value" :arbitrary-data "yessir"}})
+
+(defn $string-editor [state index]
+  [:input
+   {:type "text"
+    :onChange (fn [ev]
+                (let [new-val (-> ev .-target .-value)]
+                  (println "Change index " index)
+                  (println "To value " new-val)
+                  (swap! state assoc index new-val)))
+    :value (get @state index)}])
+
+(defn $edn-editor [state index]
+  [:input
+   {:type "text"
+    :style {:width 500}
+    :onChange (fn [ev]
+                (let [new-val (-> ev .-target .-value)]
+                  (println "Change index " index)
+                  (println "To value " new-val)
+                  (swap! state assoc index new-val)))
+    :value (with-out-str (pprint (get @state index)))}])
+
+(def args-editors
+  {:string $string-editor
+   :edn $edn-editor})
+
+(defn create-args [args]
+  (mapv
+   (fn [k]
+         (get default-args k))
+       args))
+
+(defn $args [args state]
+  [:div
+   (doall
+     (map-indexed
+     (fn [index arg]
+       (let [arg-type arg]
+         [:div
+          [:label
+           [:div arg-type]
+           [(get args-editors arg-type) state index]]]))
+     args))])
+
 (defn $component-page [{:keys [key]}]
-  (let [decoded-key (.decodeURIComponent js/window key)]
-   [:div
-    [:div "Component"]
-    [:div (str key)]
-    [:div (.decodeURIComponent js/window key)]
-    ;; [:div [(into-var decoded-key)]]
-    ]))
+  (let [decoded-key (.decodeURIComponent js/window key)
+        component (get components-map decoded-key)
+        _ (.log js/console component)
+        _ (pprint component)
+        _ (pprint (component "hello" "world"))
+        args (:args (:audition (get (list-components) decoded-key)))
+        component-args (create-args args)
+        args-state (r/atom component-args)
+        _ (println "args state")
+        _ (pprint args-state)]
+    (fn [{:keys [key]}]
+      [:div
+       [:div "Args:"]
+       [:pre (with-out-str (pprint args))]
+       [$args args args-state]
+       [:div "Rendered:"]
+       [:div
+        (apply component @args-state)]])))
 
 (def pages
   {::home $home-page
@@ -137,7 +204,11 @@
 (defn $app []
   [:div
    [:a
-    {:href "#"}
+    {:href "/home"
+     :onClick
+     (fn [ev]
+       (.preventDefault ev)
+       (go-to "/home"))}
     [:div.app-title
      [:img
       {:alt "Captain's Haven Logo"

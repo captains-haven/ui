@@ -1,5 +1,7 @@
 (ns portal.components.error)
 
-(defn $error [& error-msgs]
+(defn $error
+  {:audition {:args [:string]}}
+  [& error-msgs]
   [:div.error-message
    error-msgs])
