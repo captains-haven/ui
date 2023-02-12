@@ -742,7 +742,7 @@
    [:div [:p "Captain's Haven cannot be held liable for system down time, crashes or data loss. We cannot be held liable for any predicated estimate of profits which a client would have gained if Captain's Haven was functioning."]]
    [:div [:p "The failure of Captain's Haven to exercise or enforce any right or provision of the Terms of Service shall not constitute a waiver of such right or provision. This Terms of Service supersedes any prior agreements or prior versions of Terms of Service between you and Captain's Haven. You agree that these Terms of Service and your use of Captain's Haven are governed under Spanish and European law."]]
    [:div [:p "If you choose to provide Captain's Haven with your information, you consent to the transfer and storage of that information on our servers located in Germany, as well as your email being shared with SMTP2GO."]]
-   [:div [:p "If you have any questions regarding this Terms of Service, you can reach us at support@Captain's Haven.app"]]
+   [:div [:p "If you have any questions regarding this Terms of Service, you can reach us at support@captains-haven.org"]]
    
    [:div [:p "Last Update: 2023-02-06"]]])
 
@@ -875,10 +875,12 @@
 
 (defn $app []
     [:div
-     [:div.app-title
-      [:img
-       {:src "/favicon-32x32.png"}]
-      "Captain's Haven"]
+     [$link 
+      [:div.app-title
+       [:img
+        {:src "/favicon-32x32.png"}]
+       "Captain's Haven"]
+      "/home"]
      [$menu]
      [:div.page-wrapper
       [(:page-component @app-state)
