@@ -3,8 +3,10 @@
 set -e
 
 rm -rf public/js/*
+rm -rf public/audition/js/*
 
 npx shadow-cljs release app
+npx shadow-cljs release audition
 
 cp public/index-template.html public/index.html
 

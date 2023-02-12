@@ -6,7 +6,10 @@
 
  :dev-http {8000
             {:root "public"
-             :push-state/index "home.html"}}
+             :push-state/index "home.html"}
+            8001
+            {:root "public"
+             :push-state/index "audition.html"}}
 
  :dependencies
  [[reagent "1.1.1"]
@@ -18,4 +21,8 @@
  {:app {:target :browser
         :output-dir "public/js"
         :asset-path "/js"
-        :modules {:main {:entries [portal.core]}}}}}
+        :modules {:main {:entries [portal.core]}}}
+  :audition {:target :browser
+             :output-dir "public/audition/js"
+             :asset-path "/audition/js"
+             :modules {:main {:entries [audition.core]}}}}}
