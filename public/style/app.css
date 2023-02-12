@@ -40,9 +40,18 @@ a {
 }
 
 .blueprint {
+    width: 300px;
     padding: 10px;
     background-color: #2f2e2e;
     /* border: 1px solid black; */
+}
+
+.blueprint.full-blueprint {
+    width: 300px;
+}
+
+.blueprint.full-blueprint pre {
+    width: 300px;
 }
 
 .blueprint div {
@@ -53,6 +62,11 @@ a {
     width: 300px;
     font-size: 22px;
     white-space: nowrap;
+}
+
+.blueprint.full-blueprint .blueprint-title {
+    overflow-wrap: break-word;
+    white-space: break-spaces;
 }
 
 .ellipsis-overflow {
@@ -67,6 +81,21 @@ a {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+}
+
+.blueprint-page {
+    display: flex;
+    justify-content: space-around;
+    align-items: start;
+    max-width: 700px;
+    margin: 0px auto;
+    flex-wrap: wrap;
+}
+
+.items-list {
+    width: 300px;
+    padding: 10px;
+    background-color: #2f2e2e;
 }
 
 .blueprint a {

@@ -177,7 +177,11 @@
   (fn []
    (let [sorted-items (into (sorted-map-by (fn [key1 key2] (compare [(key2 items) key2] [(key1 items) key1]))) items)]
      [:div
-      [:h3 "Used items:"]
+      {:style {:margin 5
+               :width 300}}
+      [:div
+       {:style {:font-size "22px"}}
+       "Used items:"]
       [:div
        {:style {:display "flex"
                 :flex-direction "column"
@@ -192,38 +196,44 @@
                            :margin-top 5
                            :padding-bottom 2
                            :margin-bottom 3}}
-                  [:div k]
+                  [:div.ellipsis-overflow
+                   {:title k}
+                   k]
                   [:div v]])
                sorted-items))]])))
 
 (defn $blueprint-items [blueprint-data]
   (let [is-loading (r/atom false)
-        items (r/atom {})]
+        items (r/atom {})
+        fetch-items (fn [blueprint-data]
+                      (reset! is-loading true)
+                      (println "Did we have any blueprint data?")
+                      (pprint blueprint-data)
+                      (go
+                        (let [res (<p! (js/window.fetch
+                                        "https://parser.captains-haven.org/blueprint"
+                                        #js{:method "POST"
+                                            :body blueprint-data}))
+                              parsed (<p! (.json res))
+                              obj (js->clj parsed :keywordize-keys true)]
+                          (reset! items (:items obj))
+                          (reset! is-loading false))))]
     (r/create-class
-    {:component-did-mount
-     (fn []
-       (reset! is-loading true)
-       (pprint blueprint-data)
-       (go
-         (let [res (<p! (js/window.fetch
-                         "https://parser.captains-haven.org/blueprint"
-                         #js{:method "POST"
-                             :body blueprint-data}))
-               parsed (<p! (.json res))
-               obj (js->clj parsed :keywordize-keys true)]
-           (reset! items (:items obj))
-           (reset! is-loading false))))
-     :reagent-render
-     (fn []
-       [:div
-        (when-not (empty? @items)
-          [$list-blueprint-items @items])
-        [$debug items]])})))
+     {:component-did-mount
+      (fn [this] (fetch-items blueprint-data)) 
+      :reagent-render
+      (fn [blueprint-data]
+        [:div.items-list
+         (when-not (empty? @items)
+           [$list-blueprint-items @items])
+         ;;[$debug @items]
+         ])})))
 
 (defn $blueprint [data full-view?]
   (let [attrs (:attributes data)
         full-href (str "/blueprints/" (:slug attrs))]
    [:div.blueprint
+    {:class (when full-view? "full-blueprint")}
     [:div.blueprint-title
      {:class (when-not full-view? "ellipsis-overflow")
       :title (:title attrs)}
@@ -257,8 +267,6 @@
                               (:blueprint_data attrs))
                   (.alert js/window "Blueprint data has been copied to your clipboard!"))}
       "Copy Blueprint to Clipboard"]]
-    (when (and full-view? (:blueprint_data attrs))
-      [$blueprint-items (:blueprint_data attrs)])
     (if full-view?
       [:div
        [:div
@@ -367,18 +375,25 @@
    [$blueprints-list]])
 
 (defn $blueprint-page [{:keys [slug]}]
-  (let [item (r/atom nil)]
+  (let [item (r/atom nil)
+        blueprint-data (r/atom nil)]
     (r/create-class
      {:component-did-mount
       (fn []
         (go
           (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))]
-            (reset! item (first (:data found-item))))))
+            (reset! item (first (:data found-item)))
+            (reset! blueprint-data (-> found-item
+                                       :data
+                                       first
+                                       :attributes
+                                       :blueprint_data)))))
       :reagent-render
-      (fn []
-        [:div
+      (fn [{:keys [slug]}]
+        [:div.blueprint-page
          [$blueprint @item true]
-         [$debug @item]])})))
+         (when @blueprint-data
+          [$blueprint-items @blueprint-data])])})))
 
 (defn $edit-blueprint-page [{:keys [id]}]
   (let [item (r/atom nil)]
