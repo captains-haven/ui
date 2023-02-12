@@ -151,6 +151,28 @@ a {
     margin-bottom: 5px;
 }
 
+@media (max-width: 800px) {
+    .menu {
+        align-items: start;
+    }
+
+    .menu .menu-left, .menu .menu-right {
+        flex-direction: column;
+    }
+
+    .menu .menu-left > div, .menu .menu-right > div {
+        margin-bottom: 25px;
+    }
+
+    .menu .menu-left {
+        align-items: start;
+    }
+
+    .menu .menu-right {
+        align-items: end;
+    }
+}
+
 .menu .menu-link {
     color: black;
     background-color: orange;
@@ -177,6 +199,7 @@ a {
     /* background-color: ; */
     /* height: 20px; */
     /* line-height: 20px; */
+    text-align: center;
     width: auto;
     padding: 5px;
     border: 1px solid #fca23a;

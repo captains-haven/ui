@@ -37,6 +37,9 @@
   (or (:user-token @app-state)
       default-token))
 
+(defn is-logged-in []
+  (boolean (:user @app-state)))
+
 (defn fetch-resource [resource]
     (.then
      (.then
@@ -257,6 +260,7 @@
           [:div.blueprint-list
            (doall
             (map (fn [i]
+                   ^{:key (:id i)}
                    [:div.blueprint-list-item
                     [$blueprint i false]])
                  @items))])
@@ -295,7 +299,8 @@
              :justify-content "space-between"
              :padding 10}}
     [:h2 "All Blueprints"]
-    [$link-btn "Upload a new Blueprint" "/blueprints/new"]]
+    (when (is-logged-in)
+     [$link-btn "Upload a new Blueprint" "/blueprints/new"])]
    [$blueprints-list]])
 
 (defn $blueprint-page [{:keys [id]}]
@@ -327,18 +332,21 @@
          [$blueprint @item true]
          [$debug @item]])})))
 
-(defn $text-input [{:keys [label type placeholder value onChange]
+(defn $text-input [{:keys [label type placeholder value onChange disabled]
                     :or {label "Input Label"
                          type "text"
                          value nil
+                         disabled false
                          onChange (fn [])
                          placeholder "Input Placeholder"}}]
   [:div
+   {:class (when disabled "disabled")}
    [:label
     [:div label]
     [:input
      {:type type
       :onChange onChange
+      :disabled disabled
       :value value
       :placeholder placeholder}]]])
 
@@ -454,16 +462,19 @@
   (let [accept? (r/atom false)
         s (r/atom {:username ""
                    :email ""
-                   :res nil})
+                   :res nil
+                   :loading? false})
+        is-loading (fn [] (:loading? @s))
         handle-change (fn [k]
                         (fn [ev]
                           (let [v (-> ev .-target .-value .trim)]
                             (swap! s assoc k v))))
         submit-signup (fn []
+                        (swap! s assoc :loading? true)
                         (go
                           (let [res (<p! (trigger-login (:email @s)
                                                     (:username @s)))]
-                            (swap! s assoc :res res))))]
+                            (swap! s assoc :res res :loading? false))))]
    (r/create-class
     {:reagent-render
      (fn []
@@ -474,18 +485,21 @@
            [:div (-> @s :res :error :name)]
            [:div (-> @s :res :error :message)]])
         [$text-input {:label "Username"
+                      :disabled (is-loading)
                       :value (:username @s)
                       :onChange (handle-change :username)
                       :type "text"
                       :placeholder "Username"}]
         [$text-input {:label "Email"
+                      :disabled (is-loading)
                       :value (:email @s)
                       :onChange (handle-change :email)
                       :type "email"
                       :placeholder "email@example.com"}]
         [:label
+         {:class (when (is-loading) "disabled")}
          [:input
-          {:type "checkbox"
+          {:type "checkbox" 
            :onChange (fn [ev]
                        (let [v (-> ev .-target .-checked boolean)]
                          (reset! accept? v)))}]
@@ -495,9 +509,11 @@
          [$link "Privacy Policy" "/privacy-policy"]
          "?"]
         [$btn {:label "Signup"
-               :disabled (not @accept?)
+               :disabled (or (not @accept?) (is-loading))
                :onClick (fn []
                           (submit-signup))}]
+        (when (is-loading)
+          [$loading])
         (when (-> @s :res :sent)
           [:div
            "Email has been sent to " (-> @s :res :email) ". Please check your inbox to confirm."])
@@ -541,7 +557,13 @@
    [:p
     [$link "Privacy Policy" "/privacy-policy"]
     " - "
-    [$link "Terms & Conditions" "/terms-and-conditions"]]])
+    [$link "Terms & Conditions" "/terms-and-conditions"]]
+   [:p "Wanna see how the infrastructure is holding up?"]
+   [:p
+    [:a
+     {:href "https://status.captains-haven.org"
+      :target "_blank"}
+     "Service status page"]]])
 
 (defn $privacy-policy-page []
   [:div
@@ -640,7 +662,7 @@
     (second match)))
 
 (defn go-to [path]
-  (println "sending pushState" path)
+  ;; (println "sending pushState" path)
   (js/window.history.pushState
     #js{}
     ""
@@ -670,9 +692,6 @@
     (if (fn? (:title item))
       ((:title item))
       (:title item))]])
-
-(defn is-logged-in []
-  (boolean (:user @app-state)))
 
 (defn $menu []
   (let [items [[{:title "Home"
@@ -709,11 +728,13 @@
      [:div.menu-left
       (doall
        (map (fn [item]
+              ^{:key (:path item)}
               [$menu-item item])
             (first items)))]
      [:div.menu-right
       (doall
        (map (fn [item]
+              ^{:key (:path item)}
               [$menu-item item])
             (second items)))]]))
 
