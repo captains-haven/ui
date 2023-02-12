@@ -33,13 +33,9 @@
   (rdom/render [$app] (js/document.getElementById "root")))
 
 (defn -main []
-
   (pages/init!)
-  (println "pages initialized")
   (setup-router!)
-  (println "router setup")
-  (render)
-  (println "app rendered"))
+  (render))
 
 (defn ^:dev/after-load start []
   (-main))
