@@ -10,11 +10,13 @@
    [reagent.dom :as rdom]
    [bide.core :as bide]
    [nextjournal.markdown :as md]
-   [nextjournal.markdown.transform :as md.transform]
+   [nextjournal.markdown.transform :as md.transform] 
    
    [portal.components.link]
    [portal.components.error]
-   [portal.components.debug]))
+   [portal.components.debug])
+  (:require-macros
+   [audition.macros :refer [into-var]]))
 
 (def $debug portal.components.debug/$debug)
 
@@ -41,7 +43,11 @@
 (defn list-components []
   (reduce
    (fn [acc [k v]]
-     (assoc acc (name k) (meta v))
+     (let [m (meta v)]
+       (assoc acc (str
+                   (:ns m)
+                   "/"
+                   (name k)) m))
      )
    {}
    (only-components
@@ -59,7 +65,7 @@
 
 (def router
   (bide/router [["/home" ::home]
-                ["/component/:name" ::component]]))
+                ["/components/:key" ::components]]))
 
 (declare go-to)
 
@@ -68,21 +74,30 @@
    "Home"
    (map
     (fn [[n v]]
-      [:div
-       [:a
-        {:href (str "/components/" n)
-         :onClick (fn [ev]
-                    (.preventDefault ev)
-                    (go-to (str "/components/" n)))}
-        n]])
+      (let [url (str "/components/" (.encodeURIComponent
+                                 js/window
+                                 n))]
+       [:div
+        [:a
+         {:href url
+          :onClick (fn [ev]
+                     (.preventDefault ev)
+                     (go-to url))}
+         n]]))
     (list-components))])
 
-(defn $component-page []
-  [:div "Component"])
+(defn $component-page [{:keys [key]}]
+  (let [decoded-key (.decodeURIComponent js/window key)]
+   [:div
+    [:div "Component"]
+    [:div (str key)]
+    [:div (.decodeURIComponent js/window key)]
+    [:div [(into-var decoded-key)]]
+    ]))
 
 (def pages
   {::home $home-page
-   ::component $component-page})
+   ::components $component-page})
 
 (defn get-page-from-path [path]
   (let [match (bide/match router path)]
