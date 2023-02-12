@@ -49,6 +49,19 @@
       #(.json %))
      #(js->clj % :keywordize-keys true)))
 
+(defn fetch-resource-by-slug [resource slug]
+  (.then
+   (.then
+    (js/window.fetch
+     (str "https://api.captains-haven.org/" resource "?populate=*&filters[Slug][$eq]=" slug)
+     #js{"headers" #js{"Authorization" (str "bearer " (user-or-default-token))}})
+    #(.json %))
+   #(js->clj % :keywordize-keys true)))
+
+(comment
+  (go
+    (pprint (<p! (fetch-resource-by-slug "blueprints" "another-fertalizer-ii")))))
+
 (defn create-resource [resource resource-data]
   (.then
    (.then
@@ -208,7 +221,7 @@
 
 (defn $blueprint [data full-view?]
   (let [attrs (:attributes data)
-        full-href (str "/blueprints/" (:id data))]
+        full-href (str "/blueprints/" (:slug attrs))]
    [:div.blueprint
     [:div.blueprint-title
      {:class (when-not full-view? "ellipsis-overflow")
@@ -352,14 +365,14 @@
      [$link-btn "Upload a new Blueprint" "/blueprints/new"])]
    [$blueprints-list]])
 
-(defn $blueprint-page [{:keys [id]}]
+(defn $blueprint-page [{:keys [slug]}]
   (let [item (r/atom nil)]
     (r/create-class
      {:component-did-mount
       (fn []
         (go
-          (let [found-item (<p! (fetch-resource (str "blueprints/" id)))]
-            (reset! item (:data found-item)))))
+          (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))]
+            (reset! item (first (:data found-item))))))
       :reagent-render
       (fn []
         [:div
@@ -702,8 +715,8 @@
                 ["/mods/:id" ::mods]
                 ["/blueprints" ::blueprints]
                 ["/blueprints/new" ::blueprints-new]
-                ["/blueprints/:id" ::blueprint]
-                ["/blueprints/:id/edit" ::blueprint-edit]
+                ["/blueprints/:slug" ::blueprint]
+                ["/blueprints/:slug/edit" ::blueprint-edit]
                 ["/game-versions" ::game-versions]
                 ["/maps" ::maps]
                 ["/savegames" ::savegames]
