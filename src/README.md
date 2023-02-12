@@ -1,0 +1,2 @@
+- Application code is in [main/](main/)
+- Unit tests (non-existent right now...) [test/](test/)
