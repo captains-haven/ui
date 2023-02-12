@@ -49,9 +49,9 @@
                           (reset! is-loading false))))]
     (r/create-class
      {:component-did-mount
-      (fn [this] (fetch-items blueprint-data))
+      (fn [_this] (fetch-items blueprint-data))
       :reagent-render
-      (fn [blueprint-data]
+      (fn [_blueprint-data]
         [:div.items-list
          (when-not (empty? @items)
            [$blueprint-items-list @items])])})))

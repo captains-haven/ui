@@ -2,7 +2,6 @@
   (:require
    [cljs.core.async :refer [go]]
    [cljs.core.async.interop :refer-macros [<p!]]
-   [clojure.pprint :refer [pprint]]
    [reagent.core :as r]
    
    [portal.components.changelog :refer [$changelog-list]]))

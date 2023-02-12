@@ -18,7 +18,7 @@
             (reset! item {:attributes found-item})
             (reset! blueprint-data (:blueprint_data found-item)))))
       :reagent-render
-      (fn [{:keys [slug]}]
+      (fn [{:keys [_slug]}]
         [:div.blueprint-page
          [$blueprint @item true]
          (when @blueprint-data

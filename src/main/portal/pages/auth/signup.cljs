@@ -36,8 +36,8 @@
          [:h2 "Signup"]
          (when-let [err (-> @s :res :error)]
            [:div
-            [:div (-> @s :res :error :name)]
-            [:div (-> @s :res :error :message)]])
+            [:div (:name err)]
+            [:div (:message err)]])
          [$text-input {:label "Username"
                        :disabled (is-loading)
                        :value (:username @s)

@@ -34,7 +34,7 @@
           (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))]
             (reset! item (first (:data found-item))))))
       :reagent-render
-      (fn [{:keys [slug]}]
+      (fn [{:keys [_slug]}]
         [:div
          {:style {:display "flex"
                   :justify-content "center"

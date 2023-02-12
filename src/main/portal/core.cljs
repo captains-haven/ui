@@ -5,9 +5,7 @@
 
    [portal.components.menu :refer [$menu]]
    [portal.components.link :refer [$link]]
-   [portal.components.debug :refer [$debug]]
-   
-   [portal.components.error :refer [$error]]
+   [portal.components.debug :refer [$debug]] 
 
    [portal.pages :as pages]
 

@@ -4,7 +4,7 @@
    [portal.auth :refer [is-logged-in]] 
    [portal.components.blueprints.list :refer [$blueprints-list]]))
 
-(defn $blueprints-list-page [{:keys [id]}]
+(defn $blueprints-list-page [{:keys [_id]}]
   [:div
    [:div
     {:style {:display "flex"
