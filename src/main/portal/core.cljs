@@ -264,7 +264,8 @@
     [$link
      [:div.blueprint-image
       [:img
-       {:width 300
+       {:alt (str "Thumbnail for the Blueprint called " (:title attrs))
+        :width 300
         :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]]
      full-href]
     (when full-view?
@@ -370,12 +371,17 @@
    (if-let [username (-> @app-state :user :username)]
      [:h3 "Ahoy " username ", welcome back to Captain's Haven"]
      [:h3 "Ahoy captain, welcome to Captain's Haven"])
-   [:div "Here we have everything for budding captains:"]
+   [:div "Here we have everything for budding captains playing Captain of Industry:"]
    [:ul
     [:li "Mods to change your game experience"]
     [:li "Blueprints to learn designs from others and share with the community"]
     [:li "Savegames to learn even bigger designs"]
-    [:li "Timelapses and screenshots because sometimes we just need to stare at some photos and videos to feel good about ourselves"]]])
+    [:li "Timelapses and screenshots because sometimes we just need to stare at some photos and videos to feel good about ourselves"]]
+   [:div
+    "Want us to support some other thing from Captain of Industry? Reach out to us and maybe we can add support for it!"]
+   [$link
+    "hello@captains-haven.org"
+    "mailto:hello@captains-haven.org"]])
 
 (defn $mod-page [{:keys [id]}]
   [:div
@@ -1020,7 +1026,8 @@
      [$link 
       [:div.app-title
        [:img
-        {:src "/favicon-32x32.png"}]
+        {:alt "Captain's Haven Logo"
+         :src "/favicon-32x32.png"}]
        "Captain's Haven"]
       "/home"]
      [$menu]
