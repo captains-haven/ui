@@ -17,7 +17,8 @@
    [portal.components.link]
    [portal.components.error]
    [portal.components.debug]
-   [portal.components.changelog])
+   [portal.components.changelog]
+   [portal.components.blueprint])
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -30,7 +31,8 @@
    "portal.components.error/$error" portal.components.error/$error
    "portal.components.debug/$debug" portal.components.debug/$debug
    "portal.components.changelog/$changelog-item" portal.components.changelog/$changelog-item
-   "portal.components.changelog/$changelog-list" portal.components.changelog/$changelog-list})
+   "portal.components.changelog/$changelog-list" portal.components.changelog/$changelog-list
+   "portal.components.blueprint/$blueprint-new" portal.components.blueprint/$blueprint-new})
 
 (defn only-components [m]
   (into
@@ -39,15 +41,6 @@
             ;;  (println n)
              (str/starts-with? (name n) "$"))
            m)))
-
-(comment
-  (require '[portal.components.link])
-  (ns-interns 'portal.components.link)
-  (only-components (ns-interns 'portal.components.link))
-  
-  (meta (second (first (only-components (ns-interns 'portal.components.link)))))
-  
-  )
 
 (defn list-components []
   (reduce
@@ -65,14 +58,11 @@
      (ns-interns 'portal.components.link)
      (ns-interns 'portal.components.error)
      (ns-interns 'portal.components.debug)
-     (ns-interns 'portal.components.changelog)))))
-
-(comment
-  (list-components))
+     (ns-interns 'portal.components.changelog)
+     (ns-interns 'portal.components.blueprint)))))
 
 (def app-state
   (r/atom {}))
-
 
 (def router
   (bide/router [["/home" ::home]
@@ -96,12 +86,6 @@
                      (go-to url))}
          n]]))
     (list-components))])
-
-(comment
-  (def metadata (get
-                 (list-components)
-                 (.decodeURIComponent js/window "portal.components.link%2F%24link")))
-  (var (resolve (symbol (:ns metadata) (:name metadata)))))
 
 (defn $string-editor [state index]
   [:input
@@ -133,17 +117,6 @@
    (fn [k]
      (default-args k))
    args))
-
-(comment
-  (create-args [:git-item]))
-
-(comment 
-  (into
-   []
-   (distinct
-    (concat
-     (create-args [:edn])
-     [{:another "value"}]))))
 
 (defn $args [args state]
   [:div
