@@ -11,7 +11,7 @@ npx shadow-cljs release audition
 cp public/index-template.html public/index.html
 
 # Generate changelog
-./git-log-sh.sh > public/changelog.json
+./git-log-json.sh > public/changelog.json
 
 REV=$(git rev-parse HEAD)
 VERSION=$(cat package.json | jq -r .version)
