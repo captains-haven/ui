@@ -95,6 +95,9 @@
 (defn $debug [data]
   [:div [:pre (with-out-str (pprint data))]])
 
+(defn relative->absolute-url [relative]
+  (str "https://uploads.captains-haven.org" relative))
+
 (defn $mod-list []
   (let [items (r/atom [])]
    (r/create-class
@@ -134,6 +137,37 @@
                (:data @items)))
         [$debug @items]])})))
 
+(defn $blueprint [data]
+  (let [attrs (:attributes data)]
+   [:div.blueprint-list-item
+    [:h2
+     [$link
+      (:title attrs)
+      (str "/blueprints/" (:id data))]]
+    [:div
+     "By " (-> attrs :author :data :attributes :username)]
+    [:div
+     (:description attrs)]
+    [:img
+     {:width 300
+      :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]
+    [:div
+     "Blueprint Data:"
+     [:pre (:blueprint_data attrs)]]
+    [:div
+     [:button
+      {:onClick (fn []
+                                  ;;     navigator.clipboard.writeText (base64_encoded);
+                                  ;; window.alert ("Sharable text has been copied to your clipboard")
+                  (.writeText js/navigator.clipboard
+                              (:blueprint_data attrs))
+                  (.alert js/window "Blueprint data has been copied to your clipboard!"))}
+      "Copy Blueprint to Clipboard"]]
+    [:div
+     "Published at: " (:publishedAt attrs)]
+    [:div
+     "Last Update: " (:updatedAt attrs)]]))
+
 (defn $blueprints-list []
   (let [items (r/atom [])]
     (r/create-class
@@ -147,35 +181,7 @@
         [:div
          (doall
           (map (fn [i]
-                 (let [attrs (:attributes i)]
-                   [:div.blueprint-list-item
-                    [:h2
-                     [$link
-                      (:title attrs)
-                      (str "/blueprints/" (:id i))]]
-                    [:div
-                     "By " (-> attrs :author :data :attributes :username)]
-                    [:div
-                     (:description attrs)]
-                    [:img
-                     {:width 300
-                      :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]
-                    [:div
-                     "Blueprint Data:"
-                     [:pre (:blueprint_data attrs)]]
-                    [:div
-                     [:button
-                      {:onClick (fn []
-                                  ;;     navigator.clipboard.writeText (base64_encoded);
-                                  ;; window.alert ("Sharable text has been copied to your clipboard")
-                                  (.writeText js/navigator.clipboard
-                                              (:blueprint_data attrs))
-                                  (.alert js/window "Blueprint data has been copied to your clipboard!"))}
-                      "Copy Blueprint to Clipboard"]]
-                    [:div
-                     "Published at: " (:publishedAt attrs)]
-                    [:div
-                     "Last Update: " (:updatedAt attrs)]]))
+                 [$blueprint i])
                (:data @items)))
          [$debug @items]])})))
 
@@ -205,6 +211,20 @@
    [$link "Upload Blueprint" "/blueprints/new"]
    [$blueprints-list]])
 
+(defn $blueprint-page [{:keys [id]}]
+  (let [item (r/atom nil)]
+    (r/create-class
+     {:component-did-mount
+      (fn []
+        (go
+          (let [found-item (<p! (fetch-resource (str "blueprints/" id)))]
+            (reset! item (:data found-item)))))
+      :reagent-render
+      (fn []
+        [:div
+         [$blueprint @item]
+         [$debug @item]])})))
+
 (defn $text-input [{:keys [label type placeholder value onChange]
                     :or {label "Input Label"
                          type "text"
@@ -231,13 +251,35 @@
     {:onClick onClick}
     label]])
 
+(defn post-formdata [path form-data]
+  (.then
+   (.then
+    (js/window.fetch
+     (str "https://api.captains-haven.org/" path)
+     #js{"method" "post"
+         "headers" #js{"Authorization" (str "bearer " (user-or-default-token))}
+         "body" form-data})
+    #(.json %))
+   #(js->clj % :keywordize-keys true)))
+
+(defn upload-file [input-field]
+  (let [form-data (js/FormData.)
+        file (-> input-field .-files first)]
+    (pprint file)
+    (.append form-data "files" file)
+    (pprint form-data)
+    (post-formdata "upload" form-data)))
+
 (defn $blueprints-new-page []
   (let [s (r/atom {:title ""
                    :description ""
                    :blueprint_data ""
                 ;;    :author {:connect [{:id (:id (ls-get "user"))}]}
                    :author (:id (ls-get "user"))
-                   :res nil})
+                   :thumbnail nil
+                   :res nil
+                   :upload-res nil})
+        upload-res (r/atom nil)
         submit-blueprint
         (fn []
           (go
@@ -263,6 +305,23 @@
                       :onChange (handle-text-input-change s :blueprint_data)
                       :value (:blueprint_data @s)
                       :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
+        [:div
+         [:label
+          [:div "Thumbnail (aspect ratio should be square for best results)"]
+          [:input
+           {:type "file"
+            :name "file"
+            :onChange (fn [ev]
+                        (pprint (-> ev .-target .-value))
+                        (pprint (upload-file (-> ev .-target)))
+                        (go
+                          (let [res (<p! (upload-file (.-target ev)))]
+                            (reset! upload-res res)
+                            (swap! s assoc :thumbnail (-> res first :id)))))}]]]
+        (when-let [image-url (-> @upload-res first :url)]
+         [:img
+          {:width 300
+           :src (relative->absolute-url image-url)}])
         [$btn {:label "Submit"
                :onClick submit-blueprint}]
         [$debug @s]])})))
@@ -335,22 +394,28 @@
                 ["/mods/:id" ::mods]
                 ["/blueprints" ::blueprints]
                 ["/blueprints/new" ::blueprints-new]
+                ["/blueprints/:id" ::blueprint]
                 ["/signup" ::signup]
                 ["/login" ::login]]))
 
 (def pages
-  {::home [$home-page]
-   ::mods [$mods-page]
-   ::blueprints [$blueprints-page]
-   ::blueprints-new [$blueprints-new-page]
-   ::signup [$signup-page]
-   ::login [$login-page]})
+  {::home $home-page
+   ::mods $mods-page
+   ::blueprints $blueprints-page
+   ::blueprints-new $blueprints-new-page
+   ::blueprint $blueprint-page
+   ::signup $signup-page
+   ::login $login-page})
 
 (defn get-page-from-path [path]
   (let [match (bide/match router path)]
     (get pages (first match)
          [:div
           [:h1 "Page not found"]])))
+
+(defn get-args-from-path [path]
+  (let [match (bide/match router path)]
+    (second match)))
 
 (defn go-to [path]
   (println "sending pushState" path)
@@ -360,7 +425,8 @@
     path)
   (swap! app-state assoc
          :path path
-         :page-component (get-page-from-path path)))
+         :page-component (get-page-from-path path)
+         :page-args (get-args-from-path path)))
 
 (defn $menu []
   (let [items [{:title "Home"
@@ -392,7 +458,9 @@
 (defn $app []
     [:div
      [$menu]
-     [:div (:page-component @app-state)]
+     [:div
+      [(:page-component @app-state)
+       (:page-args @app-state)]]
      [$debug @app-state]])
 
 (defn listen-for-popstate []
@@ -404,7 +472,8 @@
      (println "popstate happened")
      (swap! app-state assoc
             :path js/window.location.pathname
-            :page-component (get-page-from-path js/window.location.pathname))
+            :page-component (get-page-from-path js/window.location.pathname)
+            :page-args (get-args-from-path js/window.location.pathname))
      )))
 
 (defn render []
@@ -413,7 +482,8 @@
 (defn -main []
   (swap! app-state assoc
          :path js/window.location.pathname
-         :page-component (get-page-from-path js/window.location.pathname))
+         :page-component (get-page-from-path js/window.location.pathname)
+         :page-args (get-args-from-path js/window.location.pathname))
   (listen-for-popstate)
   (when (= js/window.location.pathname "/")
     (go-to "/home"))
