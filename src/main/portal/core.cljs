@@ -1,5 +1,6 @@
 (ns portal.core
     (:require
+     [portal.time :refer [simple-datetime]]
      [clojure.pprint :refer [pprint]]
      [clojure.edn :refer [read-string]]
      [cljs.core.async :refer [go]]
@@ -19,6 +20,8 @@
   (read-string
    (.getItem js/window.localStorage
              k)))
+
+(def hide-debug? true)
 
 (def app-state
   (r/atom
@@ -87,13 +90,25 @@
 (declare go-to) ;; declared after router, but need to use in pages declared before router, so...
 
 (defn $link [title href]
-  [:a {:onClick (fn [ev]
+  [:a.link
+   {:onClick (fn [ev]
                   (.preventDefault ev)
                   (go-to href))
-       :href href} title])
+    :href href}
+   title])
+
+(defn $link-btn [title href]
+  [:a.link-btn
+   {:onClick (fn [ev]
+               (.preventDefault ev)
+               (go-to href))
+    :href href}
+   title])
 
 (defn $debug [data]
-  [:div [:pre (with-out-str (pprint data))]])
+  (when-not hide-debug?
+   [:div.debug
+    [:pre (with-out-str (pprint data))]]))
 
 (defn relative->absolute-url [relative]
   (str "https://uploads.captains-haven.org" relative))
@@ -126,10 +141,10 @@
                      {:href (:source_code attrs)
                       :target "_blank"}
                      (:source_code attrs)]]
-                   [:img
-                    {:width 300
-                     :height 300
-                     :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]
+                   [:div.mod-image
+                    [:img
+                     {:width 300
+                      :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]]
                    [:div
                     "Published at: " (:publishedAt attrs)]
                    [:div
@@ -137,25 +152,32 @@
                (:data @items)))
         [$debug @items]])})))
 
-(defn $blueprint [data]
-  (let [attrs (:attributes data)]
-   [:div.blueprint-list-item
-    [:h2
+(defn $blueprint [data full-view?]
+  (let [attrs (:attributes data)
+        full-href (str "/blueprints/" (:id data))]
+   [:div.blueprint
+    [:div.blueprint-title
+     {:title (:title attrs)}
      [$link
       (:title attrs)
-      (str "/blueprints/" (:id data))]]
+      full-href]]
     [:div
      "By " (-> attrs :author :data :attributes :username)]
+    (when full-view?
+      [:div
+       (:description attrs)])
+    [$link
+     [:div.blueprint-image
+      [:img
+       {:width 300
+        :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]]
+     full-href]
+    (when full-view?
+      [:div
+       "Blueprint Data:"
+       [:pre (:blueprint_data attrs)]])
     [:div
-     (:description attrs)]
-    [:img
-     {:width 300
-      :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]
-    [:div
-     "Blueprint Data:"
-     [:pre (:blueprint_data attrs)]]
-    [:div
-     [:button
+     [:button.link-btn
       {:onClick (fn []
                                   ;;     navigator.clipboard.writeText (base64_encoded);
                                   ;; window.alert ("Sharable text has been copied to your clipboard")
@@ -163,10 +185,15 @@
                               (:blueprint_data attrs))
                   (.alert js/window "Blueprint data has been copied to your clipboard!"))}
       "Copy Blueprint to Clipboard"]]
-    [:div
-     "Published at: " (:publishedAt attrs)]
-    [:div
-     "Last Update: " (:updatedAt attrs)]]))
+    (if full-view?
+      [:div
+       [:div
+        "Published at: " (:publishedAt attrs)]
+       [:div
+        "Last Update: " (:updatedAt attrs)]]
+      [:div
+       {:style {:margin-top 10}}
+       (simple-datetime (js/Date. (:updatedAt attrs)))])]))
 
 (defn $blueprints-list []
   (let [items (r/atom [])]
@@ -175,14 +202,17 @@
       (fn []
         (go
           (let [found-items (<p! (fetch-resource "blueprints"))]
-            (reset! items found-items))))
+            (reset! items (reverse (sort-by :id (:data found-items)))))))
       :reagent-render
       (fn []
         [:div
-         (doall
-          (map (fn [i]
-                 [$blueprint i])
-               (:data @items)))
+         [:div.blueprint-list
+          (doall
+           (map (fn [i]
+                  [:div.blueprint-list-item
+                   [$blueprint i false]])
+                @items))
+          ]
          [$debug @items]])})))
 
 (defn $mods-page []
@@ -195,9 +225,13 @@
 
 (defn $home-page []
   [:div
-   "Home"
-   [:div "Wanna check out some cool mods? Check this out: "]
-   [$link "mods" "/mods"]])
+   [:h3 "Ahoy Captain, welcome to Captain's Haven"]
+   [:div "Here we have everything for budding captains:"]
+   [:ul
+    [:li "Mods to change your game experience"]
+    [:li "Blueprints to learn designs from others and share with the community"]
+    [:li "Savegames to learn even bigger designs"]
+    [:li "Timelapses and screenshots because sometimes we just need to stare at some photos and videos to feel good about ourselves"]]])
 
 (defn $mod-page [{:keys [id]}]
   [:div
@@ -207,8 +241,12 @@
 
 (defn $blueprints-page [{:keys [id]}]
   [:div
-   "Blueprints"
-   [$link "Upload Blueprint" "/blueprints/new"]
+   [:div
+    {:style {:display "flex"
+             :justify-content "space-between"
+             :padding 10}}
+    [:h2 "All Blueprints"]
+    [$link-btn "Upload a new Blueprint" "/blueprints/new"]]
    [$blueprints-list]])
 
 (defn $blueprint-page [{:keys [id]}]
@@ -222,7 +260,7 @@
       :reagent-render
       (fn []
         [:div
-         [$blueprint @item]
+         [$blueprint @item true]
          [$debug @item]])})))
 
 (defn $text-input [{:keys [label type placeholder value onChange]
@@ -388,6 +426,68 @@
 (comment
   (pprint (ls-get "auth-token")))
 
+(defn $not-yet-page []
+  [:div "This page hasn't yet been built"])
+
+(defn $about-page []
+  [:div
+   [:h3 "About Captain's Haven"]
+   [:p "Captain's Haven is a all-in-one portal for everything related to Captain of Industry."]
+   [:p "We have everything from mods to screenshots under one roof."]
+   [:p "Currently we only support sharing and browsing Blueprints, but plan is to support much more than that."]
+   [:p "We are in no way related to Captain of Industry or MaFi Games, this is a third-party website developed by a independent developer, not a official website made by MaFi Games"]
+   [:p "Legal mumbo jumbo:"]
+   [:p
+    [$link "Privacy Policy" "/privacy-policy"]
+    " - "
+    [$link "Terms & Conditions" "/terms-and-conditions"]]])
+
+(defn $privacy-policy-page []
+  [:div
+   {:style {:max-width 600}}
+   [:h3 "Privacy Policy"]
+   [:div [:p "We don’t collect any personal data besides the email you provide us with for doing the user login with. Nothing you do on Captain's Haven is linked with any other personally identifiable information such as your location, IP or other device statistics. The email is only being used for authentication purposes. You’ll never receive any other emails from us unless you’ve requested it yourself. We’re also not selling any data whatsoever, and only share your email with SMTP2GO when absolutely neccessary (to send login emails)."]]
+   [:div [:p "Any information that we store, like number of HTTP requests that each website gets, has its personally identifiable information stripped from it, meaning we can’t see your IP address or any other data not related to the HTTP request itself."]]
+   [:div [:p "We don’t run or add any tracking cookies or other techniques for client-side tracking, meaning your personal data never leaves your browser."]]
+   [:div [:p "If you do contact us via email for support, we do have temporary storage of your email and it’s contents, as we try to help you with your questions. Once the issue has been solved, we delete all messages we’ve sent and received, meaning less hassle for us to deal with storage of emails, and more security for you as there is no data to be stolen."]]
+   [:div [:p "If you have any questions, feedback or concerns regarding our Privacy Policy, you can reach out to compliance@captains-haven.org"]]
+   [:div [:p "Last Update: 2023-02-06"]]])
+
+(defn $terms-and-conditions-page []
+  [:div
+   {:style {:max-width 600}}
+   [:h3 "Terms & Conditions"]
+   [:div [:p "The terms and conditions (TOS) described below apply to all use of Captain's Haven and all services available through Captain's Haven. By using Captain's Haven, you agree to be bound by these terms, so please read this Agreement carefully before using Captain's Haven."]]
+   [:div [:p "Captain's Haven has the sole discretion to change or replace any part of this agreement You are responsible for periodically checking this agreement for any changes. Any new Service additions or enhancements are subject to these Terms of Service. You consent to any such changes by continuing to use Captain's Haven."]]
+   [:div [:p "We reserve the right to terminate your account if you violate any of the terms described below."]]
+   
+   [:h4 "Account Terms"]
+   [:div [:p "You are required to use your email in order to use Captain's Haven. You are solely responsible for maintaining the security of your Captain's Haven account and it’s connected email account. You must notify us of any security breach as soon as possible. Captain's Haven will not be liable for any loss or damage if you fail to comply with this security obligation."]]
+   [:div [:p "Accounts registered by automated methods are not allowed. You must be a real person to use this service."]]
+   [:div [:p "You are responsible for all activity that happens under your account."]]
+   [:div [:p "One person or legal entity may not sign up for more than one free account."]]
+   [:div [:p "You may not use the Captain's Haven for any illegal or unauthorized purpose. You must not violate any laws in your jurisdiction in your usage of Captain's Haven."]]
+   
+   [:h4 "Changes to Captain's Haven"]
+   [:div [:p "Captain's Haven reserves the right to modify or discontinue, temporarily or permanently, Captain's Haven with or without notice."]] 
+   [:div [:p "Captain's Haven will not be liable to you or anyone for any modification, suspension or discontinuance of Captain's Haven."]]
+   [:h4 "Copyright and Content Ownership"]
+   [:div [:p "You retain all intellectual property rights over all content in your account. Your profile and any material materials uploaded also remains yours."]]
+   [:div [:p "Captain's Haven has the right in its sole discretion to refuse or remove any content that is available through Captain's Haven."]]
+   
+   [:h4 "General Conditions"]
+   [:div [:p "Captain's Haven is provided on an \"as is\" and \"as available\" basis."]]
+   [:div [:p "Captain's Haven uses third party vendors and hosting partners to provide the hardware, software, networking, storage, and related technology required to run Captain's Haven."]]
+   [:div [:p "We may remove content and accounts containing content that we determine in our sole discretion to be unlawful, offensive, threatening, libelous, defamatory, pornographic, obscene or otherwise objectionable or violates any party's intellectual property or these Terms of Service."]]
+   [:div [:p "You must not transmit any worms or viruses or any content of a destructive nature."]]
+   [:div [:p "Captain's Haven does not promise that the service will be uninterrupted, timely, secure, or error-free. We make every effort to ensure that it will satisfy your requirements and expectations, but make no promises in this regard."]]
+   [:div [:p "Captain's Haven cannot be held liable for system down time, crashes or data loss. We cannot be held liable for any predicated estimate of profits which a client would have gained if Captain's Haven was functioning."]]
+   [:div [:p "The failure of Captain's Haven to exercise or enforce any right or provision of the Terms of Service shall not constitute a waiver of such right or provision. This Terms of Service supersedes any prior agreements or prior versions of Terms of Service between you and Captain's Haven. You agree that these Terms of Service and your use of Captain's Haven are governed under Spanish and European law."]]
+   [:div [:p "If you choose to provide Captain's Haven with your information, you consent to the transfer and storage of that information on our servers located in Germany, as well as your email being shared with SMTP2GO."]]
+   [:div [:p "If you have any questions regarding this Terms of Service, you can reach us at support@Captain's Haven.app"]]
+   
+   [:div [:p "Last Update: 2023-02-06"]]])
+
 (def router
   (bide/router [["/home" ::home]
                 ["/mods" ::mods]
@@ -395,15 +495,34 @@
                 ["/blueprints" ::blueprints]
                 ["/blueprints/new" ::blueprints-new]
                 ["/blueprints/:id" ::blueprint]
+                ["/game-versions" ::game-versions]
+                ["/maps" ::maps]
+                ["/savegames" ::savegames]
+                ["/media" ::media]
+                ["/about" ::about]
+                ["/privacy-policy" ::privacy-policy]
+                ["/terms-and-conditions" ::terms-and-conditions]
                 ["/signup" ::signup]
                 ["/login" ::login]]))
 
 (def pages
   {::home $home-page
-   ::mods $mods-page
+   ::about $about-page
+   
+   ::privacy-policy $privacy-policy-page
+   ::terms-and-conditions $terms-and-conditions-page
+   
    ::blueprints $blueprints-page
    ::blueprints-new $blueprints-new-page
    ::blueprint $blueprint-page
+   
+   ::mods $mods-page
+   
+   ::versions $not-yet-page
+   ::maps $not-yet-page
+   ::savegames $not-yet-page
+   ::media $not-yet-page
+   
    ::signup $signup-page
    ::login $login-page})
 
@@ -428,37 +547,66 @@
          :page-component (get-page-from-path path)
          :page-args (get-args-from-path path)))
 
+(defn $menu-item [item]
+  [:div
+   {:key (:path item)
+    :class (when (:disabled item)
+             "disabled")}
+   [:a.menu-link
+    {:class (when (or
+                   (.startsWith (:path item)
+                                (:path @app-state))
+                   (= (:path item) (:path @app-state)))
+              "active")
+     :onClick (fn [ev]
+                (.preventDefault ev)
+                (go-to (:path item)))
+     :href (:path item)}
+    (:title item)]])
+
 (defn $menu []
-  (let [items [{:title "Home"
-                :path "/home"}
-               {:title "Mods"
-                :path "/mods"}
-               {:title "Blueprints"
-                :path "/blueprints"}
-               {:title "Signup"
-                :path "/signup"}]]
-    [:div
-     (doall
+  (let [items [[{:title "Home"
+                 :path "/home"}
+                {:title "Mods"
+                 :disabled true
+                 :path "/mods"}
+                {:title "Blueprints"
+                 :path "/blueprints"}
+                {:title "Maps"
+                 :disabled true
+                 :path "/maps"}
+                {:title "Savegames"
+                 :disabled true
+                 :path "/savegames"}
+                {:title "Media"
+                 :disabled true
+                 :path "/media"}]
+               [{:title "About"
+                 :path "/about"}
+                ;; {:title "Login"
+                ;;  :path "/login"}
+                {:title "Signup / Login"
+                 :path "/signup"}]]]
+    [:div.menu
+     [:div.menu-left
+      (doall
        (map (fn [item]
-             [:div
-              {:key (:path item)}
-              [:a
-               {:class (when (or
-                              (.startsWith (:path item)
-                                           (:path @app-state))
-                              (= (:path item) (:path @app-state)))
-                         "active")
-                :onClick (fn [ev]
-                           (.preventDefault ev)
-                           (go-to (:path item)))
-                :href (:path item)}
-               (:title item)]])
-           items))]))
+              [$menu-item item])
+            (first items)))]
+     [:div.menu-right
+      (doall
+       (map (fn [item]
+              [$menu-item item])
+            (second items)))]]))
 
 (defn $app []
     [:div
+     [:div.app-title
+      [:img
+       {:src "/favicon-32x32.png"}]
+      "Captain's Haven"]
      [$menu]
-     [:div
+     [:div.page-wrapper
       [(:page-component @app-state)
        (:page-args @app-state)]]
      [$debug @app-state]])
@@ -487,9 +635,6 @@
   (listen-for-popstate)
   (when (= js/window.location.pathname "/")
     (go-to "/home"))
-;;   (go
-;;     (let [mods (<p! (fetch-resource "mods"))]
-;;       (pprint mods)))
   (render))
 
 (defn ^:dev/after-load start []
