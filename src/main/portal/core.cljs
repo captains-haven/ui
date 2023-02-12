@@ -384,9 +384,12 @@
     (post-formdata "upload" form-data)))
 
 (defn $blueprints-new-page []
-  (let [s (r/atom {:title ""
+  (let [is-loading (r/atom false)
+        s (r/atom {:title ""
                    :description ""
                    :blueprint_data ""
+                   :items_count 1
+                   :items {}
                 ;;    :author {:connect [{:id (:id (ls-get "user"))}]}
                    :author (:id (ls-get "user"))
                    :thumbnail nil
@@ -402,6 +405,7 @@
                           (reset! parse-blueprint-timeout
                                   (js/window.setTimeout
                                     (fn []
+                                      (reset! is-loading true)
                                       (go
                                         (let [res (<p! (js/window.fetch
                                                         "https://parser.captains-haven.org/blueprint"
@@ -409,53 +413,99 @@
                                                             :body data}))
                                               parsed (<p! (.json res))
                                               obj (js->clj parsed :keywordize-keys true)]
-                                          (pprint obj)))
+                                          (pprint obj)
+                                          (swap! s assoc
+                                                 :title (:name obj)
+                                                 :description (:desc obj)
+                                                 :items_count (:items_count obj)
+                                                 :items (:items obj))
+                                          (reset! is-loading false)))
                                       (println "hello"))
-                                    1000)))
+                                    100)))
         submit-blueprint
         (fn []
+          (reset! is-loading true)
           (go
             (println "creating")
             (let [res (<p! (create-resource "blueprints" @s))]
               (println "created")
-              (swap! s assoc :res res))))]
+              (swap! s assoc :res res)
+              (reset! is-loading false)
+              (go-to (str "/blueprints/" (-> res :data :id))))))]
     (r/create-class
     {:reagent-render
      (fn []
        [:div.new-blueprint
         [:div "So you wanna add a new blueprint? Go right ahead."]
         [$text-input {:label "Blueprint Data"
+                      :disabled @is-loading
                       :onChange #(parse-blueprint (-> % .-target .-value))
                       :value (:blueprint_data @s)
                       :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
         [$text-input {:label "Title"
+                      :disabled @is-loading
                       :onChange (handle-text-input-change s :title)
                       :value (:title @s)
                       :placeholder "Blueprint Title"
                       }]
         [$text-input {:label "Description"
+                      :disabled @is-loading
                       :onChange (handle-text-input-change s :description)
                       :value (:description @s)
                       :placeholder "Description"}]
+        [$text-input {:label "Items Count"
+                      :type "number"
+                      :disabled @is-loading
+                      ;; :onChange (handle-text-input-change s :items_count)
+                      :value (:items_count @s)
+                      :placeholder "1"}]
         [:div
          [:label
           [:div "Thumbnail"]
           [:input
            {:type "file"
+            :disabled @is-loading
             :name "file"
             :onChange (fn [ev]
+                        (reset! is-loading true)
                         (pprint (-> ev .-target .-value))
                         (pprint (upload-file (-> ev .-target)))
                         (go
                           (let [res (<p! (upload-file (.-target ev)))]
                             (reset! upload-res res)
-                            (swap! s assoc :thumbnail (-> res first :id)))))}]]]
+                            (swap! s assoc :thumbnail (-> res first :id))
+                            (reset! is-loading false))))}]]]
         (when-let [image-url (-> @upload-res first :url)]
-         [:img
-          {:width 300
-           :src (relative->absolute-url image-url)}])
+          [:img
+           {:width 300
+            :src (relative->absolute-url image-url)}])
         [$btn {:label "Submit"
+               :disabled @is-loading
                :onClick submit-blueprint}]
+        (when @is-loading
+          [$loading])
+        (when-not (empty? (:items @s))
+          [:div
+           [:h3 "Found items:"]
+           [:div
+            {:style {:display "flex"
+                     :flex-direction "column"
+                     :max-width 400}}
+            (doall
+              (let [items (:items @s)
+                    sorted-items (into (sorted-map-by (fn [key1 key2] (compare [(key2 items) key2] [(key1 items) key1]))) items)]
+                (map (fn [[k v]]
+                      [:div
+                       {:style {:display "flex"
+                                :flex-direction "row"
+                                :justify-content "space-between"
+                                :border-bottom "1px solid grey"
+                                :margin-top 5
+                                :padding-bottom 2
+                                :margin-bottom 3}}
+                       [:div k]
+                       [:div v]])
+                    sorted-items)))]])
         [$debug @s]])})))
 
 (defn $signup-page []
