@@ -24,3 +24,4 @@ pom.xml.asc
 .clj-kondo/
 .lsp/
 report.html
+public/changelog.json

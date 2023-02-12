@@ -1,6 +1,8 @@
 (ns portal.core
     (:require
      [portal.time :refer [simple-datetime]]
+     [portal.pages.changelog :refer [$changelog-page]]
+     
      [clojure.pprint :refer [pprint]]
      [clojure.string :as str]
      [clojure.edn :refer [read-string]]
@@ -845,6 +847,9 @@
      {:href "https://codeberg.org/captains-haven/ui"
       :target "_blank"}
      "https://codeberg.org/captains-haven/ui"]]
+   [:p "We keep a list of all the changes happening to the platform over here"]
+   [$link "Changelog" "/changelog"]
+   [:p "Some version numbers and stuff:"]
    [:div
     [:pre
      "Revision: "
@@ -918,6 +923,7 @@
                 ["/savegames" ::savegames]
                 ["/media" ::media]
                 ["/about" ::about]
+                ["/changelog" ::changelog]
                 ["/privacy-policy" ::privacy-policy]
                 ["/terms-and-conditions" ::terms-and-conditions]
                 ["/signup" ::signup]
@@ -926,6 +932,7 @@
 (def pages
   {::home $home-page
    ::about $about-page
+   ::changelog $changelog-page
    
    ::privacy-policy $privacy-policy-page
    ::terms-and-conditions $terms-and-conditions-page

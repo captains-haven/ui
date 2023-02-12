@@ -12,9 +12,12 @@
    [nextjournal.markdown :as md]
    [nextjournal.markdown.transform :as md.transform] 
    
+   [audition.params :refer [default-args]]
+   
    [portal.components.link]
    [portal.components.error]
-   [portal.components.debug])
+   [portal.components.debug]
+   [portal.components.changelog])
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -25,7 +28,9 @@
 (def components-map
   {"portal.components.link/$link" portal.components.link/$link
    "portal.components.error/$error" portal.components.error/$error
-   "portal.components.debug/$debug" portal.components.debug/$debug})
+   "portal.components.debug/$debug" portal.components.debug/$debug
+   "portal.components.changelog/$changelog-item" portal.components.changelog/$changelog-item
+   "portal.components.changelog/$changelog-list" portal.components.changelog/$changelog-list})
 
 (defn only-components [m]
   (into
@@ -59,7 +64,8 @@
      {}
      (ns-interns 'portal.components.link)
      (ns-interns 'portal.components.error)
-     (ns-interns 'portal.components.debug)))))
+     (ns-interns 'portal.components.debug)
+     (ns-interns 'portal.components.changelog)))))
 
 (comment
   (list-components))
@@ -97,10 +103,6 @@
                  (.decodeURIComponent js/window "portal.components.link%2F%24link")))
   (var (resolve (symbol (:ns metadata) (:name metadata)))))
 
-(def default-args
-  {:string "Example String"
-   :edn {:key "value" :arbitrary-data "yessir"}})
-
 (defn $string-editor [state index]
   [:input
    {:type "text"
@@ -126,11 +128,22 @@
   {:string $string-editor
    :edn $edn-editor})
 
-(defn create-args [args]
+(defn create-args [args] 
   (mapv
    (fn [k]
-         (get default-args k))
-       args))
+     (default-args k))
+   args))
+
+(comment
+  (create-args [:git-item]))
+
+(comment 
+  (into
+   []
+   (distinct
+    (concat
+     (create-args [:edn])
+     [{:another "value"}]))))
 
 (defn $args [args state]
   [:div
@@ -141,7 +154,7 @@
          [:div
           [:label
            [:div arg-type]
-           [(get args-editors arg-type) state index]]]))
+           [(get args-editors arg-type $edn-editor) state index]]]))
      args))])
 
 (defn $component-page [{:keys [key]}]
@@ -150,7 +163,9 @@
         _ (.log js/console component)
         _ (pprint component)
         _ (pprint (component "hello" "world"))
-        args (:args (:audition (get (list-components) decoded-key)))
+        audition-props (:audition (get (list-components) decoded-key))
+        args (:args audition-props)
+        _ (pprint args)
         component-args (create-args args)
         args-state (r/atom component-args)
         _ (println "args state")
@@ -162,6 +177,8 @@
        [$args args args-state]
        [:div "Rendered:"]
        [:div
+        {:style {:padding 10
+                 :border "1px solid white"}}
         (apply component @args-state)]])))
 
 (def pages
