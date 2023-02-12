@@ -1,0 +1,4 @@
+- [ ] Show components of blueprints on load
+- [ ] Edit blueprints
+  - [ ] Can't change actual blueprint data, only metadata
+  - [ ] Make sure you cannot edit others

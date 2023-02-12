@@ -159,6 +159,53 @@
                (:data @items)))
         [$debug @items]])})))
 
+(defn $list-blueprint-items [items]
+  (fn []
+   (let [sorted-items (into (sorted-map-by (fn [key1 key2] (compare [(key2 items) key2] [(key1 items) key1]))) items)]
+     [:div
+      [:h3 "Used items:"]
+      [:div
+       {:style {:display "flex"
+                :flex-direction "column"
+                :max-width 400}}
+       (doall
+          (map (fn [[k v]]
+                 [:div
+                  {:style {:display "flex"
+                           :flex-direction "row"
+                           :justify-content "space-between"
+                           :border-bottom "1px solid grey"
+                           :margin-top 5
+                           :padding-bottom 2
+                           :margin-bottom 3}}
+                  [:div k]
+                  [:div v]])
+               sorted-items))]])))
+
+(defn $blueprint-items [blueprint-data]
+  (let [is-loading (r/atom false)
+        items (r/atom {})]
+    (r/create-class
+    {:component-did-mount
+     (fn []
+       (reset! is-loading true)
+       (pprint blueprint-data)
+       (go
+         (let [res (<p! (js/window.fetch
+                         "https://parser.captains-haven.org/blueprint"
+                         #js{:method "POST"
+                             :body blueprint-data}))
+               parsed (<p! (.json res))
+               obj (js->clj parsed :keywordize-keys true)]
+           (reset! items (:items obj))
+           (reset! is-loading false))))
+     :reagent-render
+     (fn []
+       [:div
+        (when-not (empty? @items)
+          [$list-blueprint-items @items])
+        [$debug items]])})))
+
 (defn $blueprint [data full-view?]
   (let [attrs (:attributes data)
         full-href (str "/blueprints/" (:id data))]
@@ -196,6 +243,8 @@
                               (:blueprint_data attrs))
                   (.alert js/window "Blueprint data has been copied to your clipboard!"))}
       "Copy Blueprint to Clipboard"]]
+    (when (and full-view? (:blueprint_data attrs))
+      [$blueprint-items (:blueprint_data attrs)])
     (if full-view?
       [:div
        [:div
@@ -485,27 +534,7 @@
         (when @is-loading
           [$loading])
         (when-not (empty? (:items @s))
-          [:div
-           [:h3 "Found items:"]
-           [:div
-            {:style {:display "flex"
-                     :flex-direction "column"
-                     :max-width 400}}
-            (doall
-              (let [items (:items @s)
-                    sorted-items (into (sorted-map-by (fn [key1 key2] (compare [(key2 items) key2] [(key1 items) key1]))) items)]
-                (map (fn [[k v]]
-                      [:div
-                       {:style {:display "flex"
-                                :flex-direction "row"
-                                :justify-content "space-between"
-                                :border-bottom "1px solid grey"
-                                :margin-top 5
-                                :padding-bottom 2
-                                :margin-bottom 3}}
-                       [:div k]
-                       [:div v]])
-                    sorted-items)))]])
+          [$list-blueprint-items (:items @s)])
         [$debug @s]])})))
 
 (defn $signup-page []
@@ -613,7 +642,13 @@
     [:a
      {:href "https://status.captains-haven.org"
       :target "_blank"}
-     "Service status page"]]])
+     "Service status page"]]
+   [:p "Trying to contact us? Write us!"]
+   [:p
+    [:a
+     {:href "mailto:hello@captains-haven.org"
+      :target "_blank"}
+     "hello@captains-haven.org"]]])
 
 (defn $privacy-policy-page []
   [:div
