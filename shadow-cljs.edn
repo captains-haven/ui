@@ -11,7 +11,8 @@
  :dependencies
  [[reagent "1.1.1"]
   [org.clojure/core.async "1.6.673"]
-  [funcool/bide "1.7.0"]]
+  [funcool/bide "1.7.0"]
+  [io.github.nextjournal/markdown "0.4.138"]]
 
  :builds
  {:app {:target :browser

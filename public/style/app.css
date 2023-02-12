@@ -39,6 +39,12 @@ a {
     color: blue;
 }
 
+.error-message {
+    background-color: #F05D5E;
+    padding: 15px;
+    border-radius: 5px;
+}
+
 .blueprint {
     width: 300px;
     padding: 10px;
@@ -98,7 +104,7 @@ a {
     background-color: #2f2e2e;
 }
 
-.blueprint a {
+.blueprint .blueprint-title a {
     color: white;
 }
 

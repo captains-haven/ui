@@ -8,7 +8,9 @@
      [cljs.core.async.interop :refer-macros [<p!]]
      [reagent.core :as r]
      [reagent.dom :as rdom]
-     [bide.core :as bide]))
+     [bide.core :as bide]
+     [nextjournal.markdown :as md]
+     [nextjournal.markdown.transform :as md.transform]))
 
 ;; (defn pprint [s]
 ;;   (println (prn-str s)))
@@ -69,6 +71,18 @@
     (js/window.fetch
      (str "https://api.captains-haven.org/" resource)
      #js{"method" "POST"
+         "headers" #js{"Authorization" (str "bearer " (user-or-default-token))
+                       "Content-Type" "application/json"}
+         "body" (js/JSON.stringify (clj->js {:data resource-data}))})
+    #(.json %))
+   #(js->clj % :keywordize-keys true)))
+
+(defn update-resource [resource resource-data resource-id]
+  (.then
+   (.then
+    (js/window.fetch
+     (str "https://api.captains-haven.org/" resource "/" resource-id)
+     #js{"method" "PUT"
          "headers" #js{"Authorization" (str "bearer " (user-or-default-token))
                        "Content-Type" "application/json"}
          "body" (js/JSON.stringify (clj->js {:data resource-data}))})
@@ -245,9 +259,8 @@
     (when full-view?
       [:div
        "Description:"
-       [:br]
-       [:p
-        (:description attrs)]])
+        (when (:description attrs)
+          (md.transform/->hiccup (md/parse (:description attrs))))])
     [$link
      [:div.blueprint-image
       [:img
@@ -279,11 +292,14 @@
     (when (and full-view?
                (= (-> attrs :author :data :id)
                   (-> @app-state :user :id)))
-      [$link
-       "Edit"
-       (str "/blueprints/"
-            (:id data)
-            "/edit")])]))
+      [:div
+       {:style {:margin-top 15
+                :padding-left 5}}
+       [$link-btn
+        "Edit"
+        (str "/blueprints/"
+             (:slug attrs)
+             "/edit")]])]))
 
 (defn $loading []
   (let [iterations (r/atom 0)
@@ -310,6 +326,10 @@
                    (str acc "."))
                  ""
                  (range @iterations))])})))
+
+(defn $error [& error-msgs]
+  [:div.error-message
+   error-msgs])
 
 (defn $blueprints-list []
   (let [loading? (r/atom false)
@@ -395,43 +415,44 @@
          (when @blueprint-data
           [$blueprint-items @blueprint-data])])})))
 
-(defn $edit-blueprint-page [{:keys [id]}]
-  (let [item (r/atom nil)]
-    (r/create-class
-     {:component-did-mount
-      (fn []
-        (go
-          (let [found-item (<p! (fetch-resource (str "blueprints/" id)))]
-            (reset! item (:data found-item)))))
-      :reagent-render
-      (fn []
-        [:div
-         [:h2 "EDITING"]
-         [$blueprint @item true]
-         [$debug @item]])})))
+(defn handle-text-input-change [s k]
+  (fn [ev]
+    (let [v (-> ev .-target .-value)]
+      (swap! s assoc k v))))
 
-(defn $text-input [{:keys [label type placeholder value onChange disabled]
+(defn handle-text-input-change-nested [s ks]
+  (fn [ev]
+    (let [v (-> ev .-target .-value)]
+      (swap! s assoc-in ks v))))
+
+(defn $text-input [{:keys [label type placeholder value onChange disabled multiline]
                     :or {label "Input Label"
                          type "text"
                          value nil
                          disabled false
+                         multiline false
                          onChange (fn [])
                          placeholder "Input Placeholder"}}]
   [:div
    {:class (when disabled "disabled")}
    [:label
     [:div label]
-    [:input
-     {:type type
-      :onChange onChange
-      :disabled disabled
-      :value value
-      :placeholder placeholder}]]])
+    (if multiline
+      [:textarea
+       {:onChange onChange}
+       (or value placeholder)]
+      [:input
+       {:type type
+        :onChange onChange
+        :disabled disabled
+        :value value
+        :placeholder placeholder}])]])
 
-(defn handle-text-input-change [s k]
-   (fn [ev]
-     (let [v (-> ev .-target .-value)]
-       (swap! s assoc k v))))
+
+
+
+
+
 
 (defn $btn [{:keys [label onClick disabled]}]
   [:div
@@ -461,18 +482,36 @@
     (pprint form-data)
     (post-formdata "upload" form-data)))
 
+(defn $file-upload [{:keys [disabled onStart onDone]
+                     :or {disabled false
+                          onStart (fn [])
+                          onDone (fn [])}}]
+  [:input
+   {:type "file"
+    :disabled disabled
+    :name "file"
+    :onChange (fn [ev]
+                (onStart)
+                (go
+                  (let [res (<p! (upload-file (.-target ev)))]
+                    (onDone res))))}])
+
 (defn slugify
   [string]
-  ((comp #(str/replace % #" " "-")
+  ((comp 
+    #(str/replace % #"[^a-z-]" "")
+    #(str/replace % #" " "-")
+        ;;  #(str/replace % #"[\P{ASCII}]+" "") 
          str/lower-case
-         str/trim)
+         str/trim
+         )
    string))
 
 (defn $blueprints-new-page []
   (let [is-loading (r/atom false)
-        s (r/atom {:title ""
-                   :description ""
-                   :blueprint_data ""
+        s (r/atom {:title nil
+                   :description nil
+                   :blueprint_data nil
                    :items_count 1
                    :items {}
                 ;;    :author {:connect [{:id (:id (ls-get "user"))}]}
@@ -549,7 +588,7 @@
                       :value (:blueprint_data @s)
                       :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
         (when (:blueprint-error @s)
-          [:div (:blueprint-error @s)])
+          [$error (:blueprint-error @s)])
         [$text-input {:label "Title"
                       :disabled @is-loading
                       :onChange (handle-text-input-change s :title)
@@ -559,8 +598,12 @@
         [$text-input {:label "Description"
                       :disabled @is-loading
                       :onChange (handle-text-input-change s :description)
+                      :multiline true
                       :value (:description @s)
                       :placeholder "Description"}]
+        [:div
+         {:style {:opacity 0.7}}
+         "(Markdown supported for the description)"]
         [$text-input {:label "Items Count"
                       :type "number"
                       :disabled @is-loading
@@ -570,26 +613,36 @@
         [:div
          [:label
           [:div "Thumbnail"]
-          [:input
-           {:type "file"
-            :disabled @is-loading
-            :name "file"
-            :onChange (fn [ev]
-                        (reset! is-loading true)
-                        (swap! s assoc :error nil)
-                        (pprint (-> ev .-target .-value))
-                        (pprint (upload-file (-> ev .-target)))
-                        (go
-                          (let [res (<p! (upload-file (.-target ev)))]
-                            (reset! upload-res res)
-                            (swap! s assoc :thumbnail (-> res first :id))
-                            (reset! is-loading false))))}]]]
+          [$file-upload
+           {:disabled @is-loading
+            :onStart (fn []
+                       (reset! is-loading true)
+                       (swap! s assoc :error nil))
+            :onDone (fn [res]
+                      (reset! upload-res res)
+                      (swap! s assoc :thumbnail (-> res first :id))
+                      (reset! is-loading false))}]
+          ;; [:input
+          ;;  {:type "file"
+          ;;   :disabled @is-loading
+          ;;   :name "file"
+          ;;   :onChange (fn [ev]
+          ;;               (reset! is-loading true)
+          ;;               (swap! s assoc :error nil)
+          ;;               (pprint (-> ev .-target .-value))
+          ;;               (pprint (upload-file (-> ev .-target)))
+          ;;               (go
+          ;;                 (let [res (<p! (upload-file (.-target ev)))]
+          ;;                   (reset! upload-res res)
+          ;;                   (swap! s assoc :thumbnail (-> res first :id))
+          ;;                   (reset! is-loading false))))}]
+          ]]
         (when-let [image-url (-> @upload-res first :url)]
           [:img
            {:width 300
             :src (relative->absolute-url image-url)}])
         (when (:error @s)
-          [:div
+          [$error
            (-> @s :error :name)
            " - "
            (-> @s :error :message)])
@@ -601,6 +654,74 @@
         (when-not (empty? (:items @s))
           [$list-blueprint-items (:items @s)])
         [$debug @s]])})))
+
+(defn $edit-blueprint-page [{:keys [slug]}]
+  (let [is-loading (r/atom false)
+        item (r/atom nil)
+        update-blueprint
+        (fn []
+          (go
+            (let [to-submit (-> @item
+                                :attributes
+                                (assoc :thumbnail (or (:new-thumbnail @item)
+                                                      (-> @item :attributes :thumbnail :data :id))))
+                  res (<p! (update-resource "blueprints" to-submit (:id @item)))]
+              (pprint "Updated!")
+              (pprint res)
+              (go-to (str "/blueprints/" (-> res :data :attributes :slug))))))]
+    (r/create-class
+     {:component-did-mount
+      (fn []
+        (go
+          (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))]
+            (reset! item (first (:data found-item))))))
+      :reagent-render
+      (fn [{:keys [slug]}]
+        [:div
+         {:style {:display "flex"
+                  :justify-content "center"
+                  :align-items "start"}}
+         [:div
+          {:style {:width 250}}
+          [:h2 "Edit Blueprint"]
+          [:p
+           "Warning: Blueprint Data nor Title can be updated."]
+          [$text-input {:label "Blueprint Data"
+                        :disabled true ;; can never update blueprint_data 
+                        :value (-> @item :attributes :blueprint_data)
+                        :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
+          [$text-input {:label "Title"
+                        :disabled true ;; can never update title has we use it for urls 
+                        :value (-> @item :attributes :title)
+                        :placeholder "Blueprint Title"}]
+          [$text-input {:label "Description"
+                        :disabled @is-loading
+                        :onChange (handle-text-input-change-nested item [:attributes :description])
+                        :value (-> @item :attributes :description)
+                        :multiline true
+                        :placeholder "Description"}]
+          [:label
+           [:div "Thumbnail"]
+           [$file-upload
+            {:disabled @is-loading
+             :onStart (fn []
+                        (reset! is-loading true))
+             :onDone (fn [res]
+                       (pprint res)
+                       (swap! item assoc :new-thumbnail (-> res first :id))
+                       (let [url (-> res first :formats :thumbnail :url)]
+                        (swap! item assoc-in [:attributes :thumbnail :data :attributes :url] url))
+                       (reset! is-loading false))}]]
+          [:div
+           {:style {:margin-top 15}}
+           [:button.link-btn
+            {:onClick update-blueprint}
+            "Update"]]]
+         [:div
+          {:style {:margin-left 30}}
+          [:h2 "Preview"]
+          [$blueprint @item true]]
+         [$debug @item]])})))
 
 (defn $signup-page []
   (let [accept? (r/atom false)
