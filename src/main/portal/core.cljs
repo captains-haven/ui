@@ -839,9 +839,20 @@
      {:href "mailto:hello@captains-haven.org"
       :target "_blank"}
      "hello@captains-haven.org"]]
+   [:p "Want to see how this website was made or contribute some cool feature/bugfix?"]
+   [:p
+    [:a
+     {:href "https://codeberg.org/captains-haven/ui"
+      :target "_blank"}
+     "https://codeberg.org/captains-haven/ui"]]
    [:div
     [:pre
-     "Revision: " js/globals.revision "\n"
+     "Revision: "
+     [:a
+      {:target "_blank"
+       :href (str "https://codeberg.org/captains-haven/ui/commit/" js/globals.revision)}
+      js/globals.revision]
+     "\n"
      "App version: " js/globals.version "\n"
      "Last update: " js/globals.last_update "\n"
      "Node.js version: " js/globals.node_version "\n"
