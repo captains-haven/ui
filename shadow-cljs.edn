@@ -5,8 +5,8 @@
   "src/test"]
 
  :dev-http {8000
-            {:root "public"}}
-       ;;       :push-state/index "home.html"}}
+            {:root "public"
+             :push-state/index "home.html"}}
 
  :dependencies
  [[reagent "1.1.1"]
