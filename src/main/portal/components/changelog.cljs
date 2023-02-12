@@ -2,8 +2,6 @@
   (:require
    [audition.params]))
 
-
-
 (defn $changelog-item
   {:audition {:args [:git-item]}}
   [{:keys [subject body author commitHash]}]

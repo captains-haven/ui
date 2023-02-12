@@ -1,4 +1,6 @@
-(ns audition.params)
+(ns audition.params
+  (:require
+   [clojure.pprint :refer [pprint]]))
 
 (defmulti default-args
   (fn [k]
@@ -10,5 +12,8 @@
 (defmethod default-args :string [_]
   "Example string")
 
-(defmethod default-args :default [_]
-  (throw (js/Error. "Don't know that argument type")))
+(defmethod default-args :boolean [_]
+  false)
+
+(defmethod default-args :default [args]
+  (throw (js/Error. (str "Don't know the following argument type: " (with-out-str (pprint args))))))

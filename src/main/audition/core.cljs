@@ -92,8 +92,6 @@
    {:type "text"
     :onChange (fn [ev]
                 (let [new-val (-> ev .-target .-value)]
-                  (println "Change index " index)
-                  (println "To value " new-val)
                   (swap! state assoc index new-val)))
     :value (get @state index)}])
 
@@ -103,14 +101,21 @@
     :style {:width 500}
     :onChange (fn [ev]
                 (let [new-val (-> ev .-target .-value)]
-                  (println "Change index " index)
-                  (println "To value " new-val)
                   (swap! state assoc index new-val)))
     :value (with-out-str (pprint (get @state index)))}])
 
+(defn $boolean-editor [state index]
+  [:input
+   {:type "checkbox"
+    :onChange (fn [ev]
+                (let [new-val (-> ev .-target .-checked)]
+                  (swap! state assoc index new-val)))
+    :value (get @state index)}])
+
 (def args-editors
   {:string $string-editor
-   :edn $edn-editor})
+   :edn $edn-editor
+   :boolean $boolean-editor})
 
 (defn create-args [args] 
   (mapv
