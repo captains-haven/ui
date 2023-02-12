@@ -15,8 +15,10 @@
    [portal.components.link]
    [portal.components.error]
    [portal.components.debug])
-  (:require-macros
-   [audition.macros :refer [into-var]]))
+  ;; (:require-macros
+  ;;  [audition.macros :refer [into-var]]
+  ;;  )
+  )
 
 (def $debug portal.components.debug/$debug)
 
@@ -92,7 +94,7 @@
     [:div "Component"]
     [:div (str key)]
     [:div (.decodeURIComponent js/window key)]
-    [:div [(into-var decoded-key)]]
+    ;; [:div [(into-var decoded-key)]]
     ]))
 
 (def pages
