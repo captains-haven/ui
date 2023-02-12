@@ -48,7 +48,7 @@
     (.then
      (.then
       (js/window.fetch
-       (str "https://api.captains-haven.org/" resource "?populate=*")
+       (str "https://api.captains-haven.org/" resource "?populate=*&sort=id%3Adesc&pagination[pageSize]=100")
        #js{"headers" #js{"Authorization" (str "bearer " (user-or-default-token))}})
       #(.json %))
      #(js->clj % :keywordize-keys true)))
