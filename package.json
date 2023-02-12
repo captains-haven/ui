@@ -15,6 +15,7 @@
     "preact": "^10.11.3",
     "punycode": "2.1.1",
     "react": "npm:@preact/compat@^17.1.2",
-    "react-dom": "npm:@preact/compat@^17.1.2"
+    "react-dom": "npm:@preact/compat@^17.1.2",
+    "transliteration": "^2.3.5"
   }
 }

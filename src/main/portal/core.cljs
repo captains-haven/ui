@@ -10,7 +10,8 @@
      [reagent.dom :as rdom]
      [bide.core :as bide]
      [nextjournal.markdown :as md]
-     [nextjournal.markdown.transform :as md.transform]))
+     [nextjournal.markdown.transform :as md.transform]
+     ["transliteration" :refer [transliterate slugify]]))
 
 ;; (defn pprint [s]
 ;;   (println (prn-str s)))
@@ -502,16 +503,15 @@
                   (let [res (<p! (upload-file (.-target ev)))]
                     (onDone res))))}])
 
-(defn slugify
-  [string]
-  ((comp 
-    #(str/replace % #"[^a-z-]" "")
-    #(str/replace % #" " "-")
-        ;;  #(str/replace % #"[\P{ASCII}]+" "") 
-         str/lower-case
-         str/trim
-         )
-   string))
+(defn slug-str [s]
+  (slugify (transliterate s)))
+
+(comment
+  (slug-str "hello world!")
+  (slug-str "123-coal")
+  (slug-str "原油精炼")
+  )
+
 
 (defn $blueprints-new-page []
   (let [is-loading (r/atom false)
@@ -569,7 +569,7 @@
               (reset! is-loading true)
               (go
                 (println "creating")
-                (let [to-submit (assoc @s :slug (-> @s :title slugify))
+                (let [to-submit (assoc @s :slug (-> @s :title slug-str))
                       res (<p! (create-resource "blueprints" to-submit))]
                   (if (:error res)
                     (do
