@@ -51,10 +51,13 @@ a {
 
 .blueprint .blueprint-title {
     width: 300px;
-    text-overflow: ellipsis;
-    font-size: 20px;
-    overflow: hidden;
+    font-size: 22px;
     white-space: nowrap;
+}
+
+.ellipsis-overflow {
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .blueprint-image {
@@ -63,6 +66,7 @@ a {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
 .blueprint a {
@@ -91,6 +95,15 @@ a {
     width: 99%;
     margin: auto;
     justify-content: center;
+}
+
+.new-blueprint > div {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.new-blueprint > div > label > div {
+    margin-bottom: 5px;
 }
 
 .blueprint-list-item {
@@ -166,6 +179,11 @@ a {
     border-radius: 3px;
 }
 
+button:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+  } 
+
 .link-btn:hover {
     cursor: pointer;
     color: black;
@@ -177,4 +195,10 @@ a {
     max-width: 100%;
     max-height: 300px;
     overflow: scroll;
+}
+
+.signup-page label {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: block;
 }

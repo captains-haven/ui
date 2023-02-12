@@ -1,13 +1,16 @@
 (ns portal.core
     (:require
      [portal.time :refer [simple-datetime]]
-     [clojure.pprint :refer [pprint]]
+    ;;  [clojure.pprint :refer [pprint]]
      [clojure.edn :refer [read-string]]
      [cljs.core.async :refer [go]]
      [cljs.core.async.interop :refer-macros [<p!]]
      [reagent.core :as r]
      [reagent.dom :as rdom]
      [bide.core :as bide]))
+
+(defn pprint [s]
+  (println (prn-str s)))
 
 (def default-token "e5f14974109fe5d155f10e05767015b7cfc6ead4f09c0e1837eb25558c70b3e0a418dd619482868e48f5985d853edd469286c4c710c1eae419ec438ac107e5789551032cf0083ba93c8174f665b56e78bf0a41630e2607cb1878590f1775fdc64d82cff281f96b3603cbf9ee0c7ba4b74331e1d79eb009df89cbbe903acfca45")
 
@@ -27,6 +30,7 @@
   (r/atom
    {:path "/"
     :user-token (ls-get "auth-token")
+    :user (ls-get "user")
     :page-component [:div "404"]}))
 
 (defn user-or-default-token []
@@ -157,7 +161,8 @@
         full-href (str "/blueprints/" (:id data))]
    [:div.blueprint
     [:div.blueprint-title
-     {:title (:title attrs)}
+     {:class (when-not full-view? "ellipsis-overflow")
+      :title (:title attrs)}
      [$link
       (:title attrs)
       full-href]]
@@ -165,7 +170,10 @@
      "By " (-> attrs :author :data :attributes :username)]
     (when full-view?
       [:div
-       (:description attrs)])
+       "Description:"
+       [:br]
+       [:p
+        (:description attrs)]])
     [$link
      [:div.blueprint-image
       [:img
@@ -193,26 +201,65 @@
         "Last Update: " (:updatedAt attrs)]]
       [:div
        {:style {:margin-top 10}}
-       (simple-datetime (js/Date. (:updatedAt attrs)))])]))
+       (simple-datetime (js/Date. (:updatedAt attrs)))])
+    (when (and full-view?
+               (= (-> attrs :author :data :id)
+                  (-> @app-state :user :id)))
+      [$link
+       "Edit"
+       (str "/blueprints/"
+            (:id data)
+            "/edit")])]))
 
-(defn $blueprints-list []
-  (let [items (r/atom [])]
+(defn $loading []
+  (let [iterations (r/atom 0)
+        interval (r/atom nil)]
     (r/create-class
-     {:component-did-mount
+     {:component-will-unmount
       (fn []
-        (go
-          (let [found-items (<p! (fetch-resource "blueprints"))]
-            (reset! items (reverse (sort-by :id (:data found-items)))))))
+        (js/window.clearInterval @interval)
+        (reset! interval nil))
+      :component-did-mount
+      (fn []
+        (reset! interval
+                (js/window.setInterval
+                  (fn []
+                    (if (< @iterations 3)
+                      (swap! iterations inc)
+                      (reset! iterations 0)))
+                  100)))
       :reagent-render
       (fn []
         [:div
-         [:div.blueprint-list
-          (doall
-           (map (fn [i]
-                  [:div.blueprint-list-item
-                   [$blueprint i false]])
-                @items))
-          ]
+         "Loading"
+         (reduce (fn [acc _curr]
+                   (str acc "."))
+                 ""
+                 (range @iterations))])})))
+
+(defn $blueprints-list []
+  (let [loading? (r/atom false)
+        items (r/atom [])]
+    (r/create-class
+     {:component-did-mount
+      (fn []
+        (reset! loading? true)
+        (go
+          (let [found-items (<p! (fetch-resource "blueprints"))]
+            (reset! items (reverse (sort-by :id (:data found-items))))
+            (reset! loading? false))))
+      :reagent-render
+      (fn []
+        [:div
+         (if @loading?
+           [:div
+            [$loading]]
+          [:div.blueprint-list
+           (doall
+            (map (fn [i]
+                   [:div.blueprint-list-item
+                    [$blueprint i false]])
+                 @items))])
          [$debug @items]])})))
 
 (defn $mods-page []
@@ -225,7 +272,9 @@
 
 (defn $home-page []
   [:div
-   [:h3 "Ahoy Captain, welcome to Captain's Haven"]
+   (if-let [username (-> @app-state :user :username)]
+     [:h3 "Ahoy " username ", welcome back to Captain's Haven"]
+     [:h3 "Ahoy captain, welcome to Captain's Haven"])
    [:div "Here we have everything for budding captains:"]
    [:ul
     [:li "Mods to change your game experience"]
@@ -263,6 +312,21 @@
          [$blueprint @item true]
          [$debug @item]])})))
 
+(defn $edit-blueprint-page [{:keys [id]}]
+  (let [item (r/atom nil)]
+    (r/create-class
+     {:component-did-mount
+      (fn []
+        (go
+          (let [found-item (<p! (fetch-resource (str "blueprints/" id)))]
+            (reset! item (:data found-item)))))
+      :reagent-render
+      (fn []
+        [:div
+         [:h2 "EDITING"]
+         [$blueprint @item true]
+         [$debug @item]])})))
+
 (defn $text-input [{:keys [label type placeholder value onChange]
                     :or {label "Input Label"
                          type "text"
@@ -283,10 +347,13 @@
      (let [v (-> ev .-target .-value)]
        (swap! s assoc k v))))
 
-(defn $btn [{:keys [label onClick]}]
+(defn $btn [{:keys [label onClick disabled]}]
   [:div
-   [:button
-    {:onClick onClick}
+   [:button 
+    {:disabled disabled
+     :onClick (if disabled
+                (fn [])
+                onClick)}
     label]])
 
 (defn post-formdata [path form-data]
@@ -318,6 +385,25 @@
                    :res nil
                    :upload-res nil})
         upload-res (r/atom nil)
+        parse-blueprint-timeout (r/atom nil)
+        parse-blueprint (fn [data]
+                          (swap! s assoc :blueprint_data data)
+                          (when @parse-blueprint-timeout
+                            (js/window.clearTimeout @parse-blueprint-timeout)
+                            (reset! parse-blueprint-timeout nil))
+                          (reset! parse-blueprint-timeout
+                                  (js/window.setTimeout
+                                    (fn []
+                                      (go
+                                        (let [res (<p! (js/window.fetch
+                                                        "https://parser.captains-haven.org/blueprint"
+                                                        #js{:method "POST"
+                                                            :body data}))
+                                              parsed (<p! (.json res))
+                                              obj (js->clj parsed :keywordize-keys true)]
+                                          (pprint obj)))
+                                      (println "hello"))
+                                    1000)))
         submit-blueprint
         (fn []
           (go
@@ -328,8 +414,12 @@
     (r/create-class
     {:reagent-render
      (fn []
-       [:div
-        [:div "So you wanna add a new blueprint? Go right ahead:"]
+       [:div.new-blueprint
+        [:div "So you wanna add a new blueprint? Go right ahead."]
+        [$text-input {:label "Blueprint Data"
+                      :onChange #(parse-blueprint (-> % .-target .-value))
+                      :value (:blueprint_data @s)
+                      :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
         [$text-input {:label "Title"
                       :onChange (handle-text-input-change s :title)
                       :value (:title @s)
@@ -339,13 +429,9 @@
                       :onChange (handle-text-input-change s :description)
                       :value (:description @s)
                       :placeholder "Description"}]
-        [$text-input {:label "Blueprint Data"
-                      :onChange (handle-text-input-change s :blueprint_data)
-                      :value (:blueprint_data @s)
-                      :placeholder "B2416:H4sIAAAAAAAACnVWzW8bxxV...."}]
         [:div
          [:label
-          [:div "Thumbnail (aspect ratio should be square for best results)"]
+          [:div "Thumbnail"]
           [:input
            {:type "file"
             :name "file"
@@ -365,7 +451,8 @@
         [$debug @s]])})))
 
 (defn $signup-page []
-  (let [s (r/atom {:username ""
+  (let [accept? (r/atom false)
+        s (r/atom {:username ""
                    :email ""
                    :res nil})
         handle-change (fn [k]
@@ -380,7 +467,8 @@
    (r/create-class
     {:reagent-render
      (fn []
-       [:div
+       [:div.signup-page
+        [:h2 "Signup"]
         (when-let [err (-> @s :res :error)]
           [:div
            [:div (-> @s :res :error :name)]
@@ -395,7 +483,19 @@
                       :onChange (handle-change :email)
                       :type "email"
                       :placeholder "email@example.com"}]
+        [:label
+         [:input
+          {:type "checkbox"
+           :onChange (fn [ev]
+                       (let [v (-> ev .-target .-checked boolean)]
+                         (reset! accept? v)))}]
+         "Accept "
+         [$link "Terms & Conditions" "/terms-and-conditions"]
+         " and "
+         [$link "Privacy Policy" "/privacy-policy"]
+         "?"]
         [$btn {:label "Signup"
+               :disabled (not @accept?)
                :onClick (fn []
                           (submit-signup))}]
         (when (-> @s :res :sent)
@@ -417,6 +517,7 @@
               (pprint res)
               (ls-set "auth-token" (:jwt res))
               (ls-set "user" (:user res))
+              (set! js/window.location.pathname "/")
               )))))
     :reagent-render
     (fn []
@@ -495,6 +596,7 @@
                 ["/blueprints" ::blueprints]
                 ["/blueprints/new" ::blueprints-new]
                 ["/blueprints/:id" ::blueprint]
+                ["/blueprints/:id/edit" ::blueprint-edit]
                 ["/game-versions" ::game-versions]
                 ["/maps" ::maps]
                 ["/savegames" ::savegames]
@@ -515,6 +617,7 @@
    ::blueprints $blueprints-page
    ::blueprints-new $blueprints-new-page
    ::blueprint $blueprint-page
+   ::blueprint-edit $edit-blueprint-page
    
    ::mods $mods-page
    
