@@ -1,7 +1,7 @@
 (ns portal.core
     (:require
      [portal.time :refer [simple-datetime]]
-    ;;  [clojure.pprint :refer [pprint]]
+     [clojure.pprint :refer [pprint]]
      [clojure.edn :refer [read-string]]
      [cljs.core.async :refer [go]]
      [cljs.core.async.interop :refer-macros [<p!]]
@@ -9,8 +9,8 @@
      [reagent.dom :as rdom]
      [bide.core :as bide]))
 
-(defn pprint [s]
-  (println (prn-str s)))
+;; (defn pprint [s]
+;;   (println (prn-str s)))
 
 (def default-token "e5f14974109fe5d155f10e05767015b7cfc6ead4f09c0e1837eb25558c70b3e0a418dd619482868e48f5985d853edd469286c4c710c1eae419ec438ac107e5789551032cf0083ba93c8174f665b56e78bf0a41630e2607cb1878590f1775fdc64d82cff281f96b3603cbf9ee0c7ba4b74331e1d79eb009df89cbbe903acfca45")
 
@@ -663,9 +663,16 @@
               "active")
      :onClick (fn [ev]
                 (.preventDefault ev)
-                (go-to (:path item)))
+                (if (:action item)
+                  ((:action item))
+                  (go-to (:path item))))
      :href (:path item)}
-    (:title item)]])
+    (if (fn? (:title item))
+      ((:title item))
+      (:title item))]])
+
+(defn is-logged-in []
+  (boolean (:user @app-state)))
 
 (defn $menu []
   (let [items [[{:title "Home"
@@ -688,7 +695,15 @@
                  :path "/about"}
                 ;; {:title "Login"
                 ;;  :path "/login"}
-                {:title "Signup / Login"
+                {:title (fn []
+                          (if (is-logged-in)
+                            "Logout"
+                           "Signup / Login"))
+                 :action (fn []
+                           (if (is-logged-in)
+                             (do (.clear js/localStorage)
+                                 (set! js/window.location.pathname "/"))
+                             (go-to "/signup")))
                  :path "/signup"}]]]
     [:div.menu
      [:div.menu-left
