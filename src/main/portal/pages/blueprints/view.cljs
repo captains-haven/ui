@@ -4,7 +4,7 @@
    [cljs.core.async.interop :refer-macros [<p!]] 
    [reagent.core :as r]
    [portal.http :refer [fetch-resource-by-slug]]
-   [portal.components.blueprint :refer [$blueprint]]
+   [portal.components.blueprint :refer [$blueprint $blueprint-new]]
    [portal.components.blueprints.items-list :refer [$blueprint-items]]))
 
 (defn $blueprints-view-page [{:keys [slug]}]
@@ -15,11 +15,11 @@
       (fn []
         (go
           (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))]
-            (reset! item {:attributes found-item})
+            (reset! item found-item)
             (reset! blueprint-data (:blueprint_data found-item)))))
       :reagent-render
       (fn [{:keys [_slug]}]
         [:div.blueprint-page
-         [$blueprint @item true]
+         [$blueprint-new @item true]
          (when @blueprint-data
            [$blueprint-items @blueprint-data])])})))

@@ -15,5 +15,9 @@
 (defmethod default-args :boolean [_]
   false)
 
+(defmethod default-args :function [_]
+  (fn [ev]
+    (pprint ev)))
+
 (defmethod default-args :default [args]
   (throw (js/Error. (str "Don't know the following argument type: " (with-out-str (pprint args))))))

@@ -14,8 +14,7 @@
 (defn $blueprint-new
   {:audition {:args [:blueprint :boolean]}}
   [data full-view?]
-  (let [attrs (:attributes data)
-        full-href (str "/blueprints/" (:slug attrs))]
+  (let [full-href (str "/blueprints/" (:slug data))]
     [:div.blueprint
      {:class (when full-view? "full-blueprint")}
      [:div.blueprint-title
@@ -34,40 +33,42 @@
      [$link
       [:div.blueprint-image
        [:img
-        {:alt (str "Thumbnail for the Blueprint called " (:title attrs))
+        {:alt (str "Thumbnail for the Blueprint called " (:title data))
          :width 300
-         :src (str "https://uploads.captains-haven.org" (-> attrs :thumbnail :data :attributes :url))}]]
+         :src (str "https://uploads.captains-haven.org" (-> data :thumbnail :formats :thumbnail :url))}]]
       full-href]
      (when full-view?
        [:div
         "Blueprint Data:"
-        [:pre (:blueprint_data attrs)]])
+        [:pre (:blueprint_data data)]])
      [:div
       [:button.link-btn
        {:onClick (fn []
                    (.writeText js/navigator.clipboard
-                               (:blueprint_data attrs))
+                               (:blueprint_data data))
                    (.alert js/window "Blueprint data has been copied to your clipboard!"))}
        "Copy Blueprint to Clipboard"]]
      (if full-view?
        [:div
         [:div
-         "Published at: " (:publishedAt attrs)]
+         "Published at: " (:publishedAt data)]
         [:div
-         "Last Update: " (:updatedAt attrs)]]
+         "Last Update: " (:updatedAt data)]]
        [:div
         {:style {:margin-top 10}}
-        (simple-datetime (js/Date. (:updatedAt attrs)))])
+        (simple-datetime (js/Date. (:updatedAt data)))])
+     [:div
+      "Views: " (or (:views data) 1)]
      (when (and full-view?
-                (= (-> attrs :author :data :id)
-                   (-> @app-state :user :id)))
+                (= (-> data :author :username)
+                   (-> @app-state :user :username)))
        [:div
         {:style {:margin-top 15
                  :padding-left 5}}
         [$link-btn
          "Edit"
          (str "/blueprints/"
-              (:slug attrs)
+              (:slug data)
               "/edit")]])]))
 
 (defn $blueprint [data full-view?]
@@ -115,6 +116,8 @@
        [:div
         {:style {:margin-top 10}}
         (simple-datetime (js/Date. (:updatedAt attrs)))])
+     [:div
+      "Views: " (or (:views attrs) 1)]
      (when (and full-view?
                 (= (-> attrs :author :data :id)
                    (-> @app-state :user :id)))
@@ -142,17 +145,7 @@
    :items_count 85,
    :title "Basic Coal Burner Power plant and Salt by PeterPeijs",
    :author
-   {:email "peter.peijs@gmail.com",
-    :updatedAt "2023-02-12T08:23:05.336Z",
-    :password nil,
-    :username "PeterPeijs",
-    :createdAt "2023-02-12T08:21:30.536Z",
-    :confirmed true,
-    :resetPasswordToken nil,
-    :confirmationToken nil,
-    :id 69,
-    :blocked false,
-    :provider nil},
+   {:username "PeterPeijs"},
    :thumbnail
    {:formats
     {:thumbnail

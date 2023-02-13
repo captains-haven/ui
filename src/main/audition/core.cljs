@@ -18,7 +18,11 @@
    [portal.components.error]
    [portal.components.debug]
    [portal.components.changelog]
-   [portal.components.blueprint])
+   [portal.components.blueprint]
+   [portal.components.blueprints.list]
+   [portal.components.forms.select]
+   
+   )
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -32,7 +36,9 @@
    "portal.components.debug/$debug" portal.components.debug/$debug
    "portal.components.changelog/$changelog-item" portal.components.changelog/$changelog-item
    "portal.components.changelog/$changelog-list" portal.components.changelog/$changelog-list
-   "portal.components.blueprint/$blueprint-new" portal.components.blueprint/$blueprint-new})
+   "portal.components.blueprint/$blueprint-new" portal.components.blueprint/$blueprint-new
+   "portal.components.blueprints.list/$blueprints-list-new" portal.components.blueprints.list/$blueprints-list-new
+   "portal.components.forms.select/$select" portal.components.forms.select/$select})
 
 (defn only-components [m]
   (into
@@ -59,7 +65,9 @@
      (ns-interns 'portal.components.error)
      (ns-interns 'portal.components.debug)
      (ns-interns 'portal.components.changelog)
-     (ns-interns 'portal.components.blueprint)))))
+     (ns-interns 'portal.components.blueprint)
+     (ns-interns 'portal.components.blueprints.list)
+     (ns-interns 'portal.components.forms.select)))))
 
 (def app-state
   (r/atom {}))
@@ -96,13 +104,12 @@
     :value (get @state index)}])
 
 (defn $edn-editor [state index]
-  [:input
-   {:type "text"
-    :style {:width 500}
+  [:textarea
+   {:style {:width 500}
     :onChange (fn [ev]
                 (let [new-val (-> ev .-target .-value)]
-                  (swap! state assoc index new-val)))
-    :value (with-out-str (pprint (get @state index)))}])
+                  (swap! state assoc index (read-string new-val))))}
+   (with-out-str (pprint (get @state index)))])
 
 (defn $boolean-editor [state index]
   [:input
