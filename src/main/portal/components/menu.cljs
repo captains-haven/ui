@@ -32,7 +32,7 @@
                  :disabled true
                  :path "/mods"}
                 {:title "Blueprints"
-                 :path "/blueprints"}
+                 :path "/blueprints/sorted-by/latest/desc"}
                 {:title "Maps"
                  :disabled true
                  :path "/maps"}

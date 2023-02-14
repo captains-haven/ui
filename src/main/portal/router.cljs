@@ -8,6 +8,9 @@
                 ["/mods" :mods]
                 ["/mods/:id" :mods]
                 ["/blueprints" :blueprints]
+                
+                ["/blueprints/sorted-by/:sort-by/:direction" :blueprints]
+                
                 ["/blueprints/new" :blueprints-new]
                 ["/blueprints/:slug" :blueprint]
                 ["/blueprints/:slug/edit" :blueprint-edit]

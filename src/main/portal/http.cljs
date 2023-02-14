@@ -20,6 +20,15 @@
     #(.json %))
    #(js->clj % :keywordize-keys true)))
 
+(defn fetch-resource-with-sort [resource sort-by direction]
+  (.then
+   (.then
+    (js/window.fetch
+     (str api-root resource "?populate=*&sort="sort-by"%3A"direction"&pagination[pageSize]=100")
+     #js{"headers" #js{"Authorization" (str "bearer " (user-or-default-token))}})
+    #(.json %))
+   #(js->clj % :keywordize-keys true)))
+
 (defn fetch-resource-by-slug [resource slug]
   (.then
    (.then

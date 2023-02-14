@@ -2,7 +2,7 @@
   (:require
    [clojure.pprint :refer [pprint]]))
 
-(def hide-debug? false)
+(def hide-debug? true)
 
 (defn $debug
   {:audition {:args [:edn]}}

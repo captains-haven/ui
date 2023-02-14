@@ -5,18 +5,20 @@
 (defn $select
   {:audition {:args [:example-label :selected-option :function :options]}}
   [label value onChange items]
-  [:div
-   [:label
-    [:div label]
-    [:select
-     {:value value
-      :onChange (fn [ev]
-                  (let [new-val (-> ev .-target .-value)]
-                    (onChange new-val)))}
-     (map
-      (fn [{:keys [name value]}]
-        [:option {:value value} name])
-      items)]]])
+  [:label
+   [:span
+    {:style {:margin-right 5}}
+    label]
+   [:select
+    {:value value
+     :onChange (fn [ev]
+                 (let [new-val (-> ev .-target .-value)]
+                   (onChange new-val)))}
+    (map
+     (fn [{:keys [name value]}]
+       ^{:key value}
+       [:option {:value value} name])
+     items)]])
 
 (defmethod audition.params/default-args :example-label []
   "Select Label")
