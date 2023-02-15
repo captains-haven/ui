@@ -4,6 +4,7 @@
    [portal.time :refer [simple-datetime]]
    [portal.state :refer [app-state]]
    [portal.components.link-btn :refer [$link-btn]]
+   [portal.components.zoomable-image :refer [$zoomable-image]]
    
    [portal.markdown :refer [markdown->hiccup]]
    
@@ -29,13 +30,19 @@
         "Description:"
         (when (:description data)
           (markdown->hiccup (:description data)))])
-     [$link
-      [:div.blueprint-image
-       [:img
+     (if full-view?
+       [$zoomable-image
+        (str "https://uploads.captains-haven.org" (-> data :thumbnail :formats :thumbnail :url))
+        (str "https://uploads.captains-haven.org" (-> data :thumbnail :url))
         {:alt (str "Thumbnail for the Blueprint called " (:title data))
-         :width 300
-         :src (str "https://uploads.captains-haven.org" (-> data :thumbnail :formats :thumbnail :url))}]]
-      full-href]
+         :width 300}]
+      [$link
+       [:div.blueprint-image
+        [:img
+         {:alt (str "Thumbnail for the Blueprint called " (:title data))
+          :width 300
+          :src (str "https://uploads.captains-haven.org" (-> data :thumbnail :formats :thumbnail :url))}]]
+       full-href])
      (when full-view?
        [:div
         "Blueprint Data:"
