@@ -38,6 +38,15 @@
     #(.json %))
    #(js->clj % :keywordize-keys true)))
 
+(defn fetch-resource-by-old-slug [resource slug]
+  (.then
+   (.then
+    (js/window.fetch
+     (str api-root resource "?filters[slug][$eq]=" slug "&populate=*")
+     #js{"headers" #js{"Authorization" (str "bearer " (user-or-default-token))}})
+    #(.json %))
+   #(js->clj % :keywordize-keys true)))
+
 (defn create-resource [resource resource-data]
   (.then
    (.then

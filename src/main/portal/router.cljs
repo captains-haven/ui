@@ -23,7 +23,9 @@
                 ["/privacy-policy" :privacy-policy]
                 ["/terms-and-conditions" :terms-and-conditions]
                 ["/signup" :signup]
-                ["/login" :login]]))
+                ["/login" :login]
+                ["/news" :news]
+                ["/news/:slug" :news]]))
 
 (defn get-page-from-path [path]
   (let [match (bide/match routes path)]

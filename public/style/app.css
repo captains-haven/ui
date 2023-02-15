@@ -266,3 +266,22 @@ button:disabled {
     margin-bottom: 10px;
     display: block;
 }
+
+.news-page {
+    max-width: 700px;
+    margin: 0px auto;
+}
+
+.news-item {
+    max-width: 700px;
+}
+
+.news-item blockquote {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin: 0px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+    padding: 1px 20px;
+}

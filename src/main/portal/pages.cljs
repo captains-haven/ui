@@ -14,7 +14,9 @@
    [portal.pages.blueprints.list :refer [$blueprints-list-page]]
    [portal.pages.blueprints.new :refer [$blueprints-new-page]]
    [portal.pages.blueprints.view :refer [$blueprints-view-page]]
-   [portal.pages.blueprints.edit :refer [$blueprints-edit-page]]))
+   [portal.pages.blueprints.edit :refer [$blueprints-edit-page]]
+   
+   [portal.pages.news :refer [$news-page]]))
 
 (def pages
   {:home $home-page
@@ -37,7 +39,9 @@
    :media $not-yet-page
 
    :signup $signup-page
-   :login $login-page})
+   :login $login-page
+   
+   :news $news-page})
 
 (defn init! []
   (set! js/window.app_pages pages))

@@ -5,8 +5,7 @@
    [portal.state :refer [app-state]]
    [portal.components.link-btn :refer [$link-btn]]
    
-   [nextjournal.markdown :as md]
-   [nextjournal.markdown.transform :as md.transform]
+   [portal.markdown :refer [markdown->hiccup]]
    
    [audition.params]))
 
@@ -29,7 +28,7 @@
        [:div
         "Description:"
         (when (:description data)
-          (md.transform/->hiccup (md/parse (:description data))))])
+          (markdown->hiccup (:description data)))])
      [$link
       [:div.blueprint-image
        [:img
@@ -88,7 +87,7 @@
        [:div
         "Description:"
         (when (:description attrs)
-          (md.transform/->hiccup (md/parse (:description attrs))))])
+          (markdown->hiccup (:description attrs)))])
      [$link
       [:div.blueprint-image
        [:img

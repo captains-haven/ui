@@ -10,10 +10,10 @@
    [reagent.dom :as rdom]
    [bide.core :as bide]
    [nextjournal.markdown :as md]
-   [nextjournal.markdown.transform :as md.transform] 
-   
+   [nextjournal.markdown.transform :as md.transform]
+
    [audition.params :refer [default-args]]
-   
+
    [portal.components.link]
    [portal.components.error]
    [portal.components.debug]
@@ -21,8 +21,8 @@
    [portal.components.blueprint]
    [portal.components.blueprints.list]
    [portal.components.forms.select]
-   
-   )
+   [portal.components.news.item]
+   [portal.components.news.list])
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -38,7 +38,10 @@
    "portal.components.changelog/$changelog-list" portal.components.changelog/$changelog-list
    "portal.components.blueprint/$blueprint-new" portal.components.blueprint/$blueprint-new
    "portal.components.blueprints.list/$blueprints-list-new" portal.components.blueprints.list/$blueprints-list-new
-   "portal.components.forms.select/$select" portal.components.forms.select/$select})
+   "portal.components.forms.select/$select" portal.components.forms.select/$select
+   "portal.components.news.item/$news-item" portal.components.news.item/$news-item
+   "portal.components.news.list/$news-list-item" portal.components.news.list/$news-list-item
+   "portal.components.news.list/$news-list" portal.components.news.list/$news-list})
 
 (defn only-components [m]
   (into
@@ -67,7 +70,21 @@
      (ns-interns 'portal.components.changelog)
      (ns-interns 'portal.components.blueprint)
      (ns-interns 'portal.components.blueprints.list)
-     (ns-interns 'portal.components.forms.select)))))
+     (ns-interns 'portal.components.forms.select)
+     (ns-interns 'portal.components.news.item)
+     (ns-interns 'portal.components.news.list)))))
+
+(defn sort-components [components]
+  (into
+   (sorted-map)
+   (reverse
+    (sort-by
+     first
+     components))))
+
+(comment
+  (keys (list-components))
+  (keys (sort-components (list-components))))
 
 (def app-state
   (r/atom {}))
@@ -93,7 +110,7 @@
                      (.preventDefault ev)
                      (go-to url))}
          n]]))
-    (list-components))])
+    (sort-components (list-components)))])
 
 (defn $string-editor [state index]
   [:input

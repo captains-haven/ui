@@ -6,8 +6,8 @@
 (defn $home-page []
   [:div
    (if-let [username (-> @app-state :user :username)]
-     [:h3 "Ahoy " username ", welcome back to Captain's Haven"]
-     [:h3 "Ahoy captain, welcome to Captain's Haven"])
+     [:h1 "Ahoy " username ", welcome back to Captain's Haven"]
+     [:h1 "Ahoy captain, welcome to Captain's Haven"])
    [:div "Here we have everything for budding captains playing Captain of Industry:"]
    [:ul
     [:li "Mods to change your game experience"]
