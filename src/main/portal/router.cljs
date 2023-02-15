@@ -4,7 +4,8 @@
    [bide.core :as bide]))
 
 (def routes
-  (bide/router [["/home" :home]
+  (bide/router [["/" :home]
+                ["/home" :home]
                 ["/mods" :mods]
                 ["/mods/:id" :mods]
                 ["/blueprints" :blueprints]
@@ -80,5 +81,6 @@
 (defn setup-router! []
   (update-from-client-location!)
   (listen-for-popstate!)
-  (when (= js/window.location.pathname "/")
-    (go-to "/home")))
+  ;; (when (= js/window.location.pathname "/")
+  ;;   (go-to "/home"))
+  )

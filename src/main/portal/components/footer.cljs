@@ -21,11 +21,12 @@
    (doall
      (map (fn [{:keys [title path]}]
            [:div.footer-link
-            {:class (when (or
-                           (.startsWith path
-                                        (:path @app-state))
-                           (= path (:path @app-state)))
-                      "active")}
+            {:class (when-not (= (:path @app-state) "/")
+                      (when (or
+                            (.startsWith path
+                                         (:path @app-state))
+                            (= path (:path @app-state)))
+                       "active"))}
             (if (str/starts-with? path "/")
               [$link title path]
               [:a

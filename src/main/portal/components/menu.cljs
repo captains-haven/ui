@@ -10,11 +10,13 @@
     :class (when (:disabled item)
              "disabled")}
    [:a.menu-link
-    {:class (when (or
-                   (.startsWith (:path item)
-                                (:path @app-state))
-                   (= (:path item) (:path @app-state)))
-              "active")
+    {:class
+     (if (= (:path @app-state) "/")
+       (when (= (:path item) (:path @app-state))
+         "active")
+       (when (or (.startsWith (:path item)
+                              (:path @app-state)))
+         "active"))
      :onClick (fn [ev]
                 (.preventDefault ev)
                 (if (:action item)
@@ -27,7 +29,7 @@
 
 (defn $menu []
   (let [items [[{:title "Home"
-                 :path "/home"}
+                 :path "/"}
                 {:title "Mods"
                  :disabled true
                  :path "/mods"}
