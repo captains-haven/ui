@@ -285,3 +285,22 @@ button:disabled {
     margin-bottom: 10px;
     padding: 1px 20px;
 }
+
+.fullscreen-background {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    bottom: 0px;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.fullscreen-modal img {
+    max-width: 95vw;
+    min-width: 90vw;
+}

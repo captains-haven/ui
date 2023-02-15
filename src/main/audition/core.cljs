@@ -6,8 +6,12 @@
    [clojure.edn :refer [read-string]]
    [cljs.core.async :refer [go]]
    [cljs.core.async.interop :refer-macros [<p!]]
+   
    [reagent.core :as r]
    [reagent.dom :as rdom]
+   [reagent.impl.component :as r-interop]
+   [reagent.impl.template :refer [valid-tag?]]
+   
    [bide.core :as bide]
    [nextjournal.markdown :as md]
    [nextjournal.markdown.transform :as md.transform]
@@ -22,7 +26,8 @@
    [portal.components.blueprints.list]
    [portal.components.forms.select]
    [portal.components.news.item]
-   [portal.components.news.list])
+   [portal.components.news.list]
+   [portal.components.zoomable-image])
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -41,7 +46,8 @@
    "portal.components.forms.select/$select" portal.components.forms.select/$select
    "portal.components.news.item/$news-item" portal.components.news.item/$news-item
    "portal.components.news.list/$news-list-item" portal.components.news.list/$news-list-item
-   "portal.components.news.list/$news-list" portal.components.news.list/$news-list})
+   "portal.components.news.list/$news-list" portal.components.news.list/$news-list
+   "portal.components.zoomable-image/$zoomable-image" portal.components.zoomable-image/$zoomable-image})
 
 (defn only-components [m]
   (into
@@ -72,7 +78,8 @@
      (ns-interns 'portal.components.blueprints.list)
      (ns-interns 'portal.components.forms.select)
      (ns-interns 'portal.components.news.item)
-     (ns-interns 'portal.components.news.list)))))
+     (ns-interns 'portal.components.news.list)
+     (ns-interns 'portal.components.zoomable-image)))))
 
 (defn sort-components [components]
   (into
@@ -173,15 +180,32 @@
         _ (println "args state")
         _ (pprint args-state)]
     (fn [{:keys [key]}]
-      [:div
-       [:div "Args:"]
-       [:pre (with-out-str (pprint args))]
-       [$args args args-state]
-       [:div "Rendered:"]
+      (let [;;rendered-component (apply component @args-state)
+            ]
        [:div
-        {:style {:padding 10
-                 :border "1px solid white"}}
-        (apply component @args-state)]])))
+        [:div "Args:"]
+        [:pre (with-out-str (pprint args))]
+        [$args args args-state]
+        [:div "Rendered:"]
+      ;;  [component @args-state]
+        [:div
+         {:style {:padding 10
+                  :border "1px solid white"}}
+        ;; [component @args-state]
+        ;; (pprint [:type (type component)])
+        ;;  (.log js/console component)
+        ;;  (set! (.-component js/window) component)
+        ;;  (pprint [(r-interop/react-class? rendered-component)
+        ;;           (r-interop/reagent-class? rendered-component)
+        ;;           (r-interop/reagent-component? rendered-component)
+        ;;         ;;  (valid-tag? rendered-component)
+        ;;           ])
+        ;;  (if (r-interop/reagent-component? rendered-component)
+          ;;  [(apply component @args-state)]
+         (apply component @args-state)
+        ;; 
+        ;; (apply component @args-state)
+         ]]))))
 
 (def pages
   {::home $home-page
