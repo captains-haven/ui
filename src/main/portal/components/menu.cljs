@@ -42,8 +42,8 @@
                 {:title "Media"
                  :disabled true
                  :path "/media"}]
-               [{:title "About"
-                 :path "/about"}
+               [;;{:title "About"
+                ;; :path "/about"}
                 ;; {:title "Login"
                 ;;  :path "/login"}
                 {:title (fn []

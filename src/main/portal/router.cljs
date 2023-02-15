@@ -24,6 +24,7 @@
                 ["/terms-and-conditions" :terms-and-conditions]
                 ["/signup" :signup]
                 ["/login" :login]
+                ["/contact-us" :contact]
                 ["/news" :news]
                 ["/news/:slug" :news]]))
 

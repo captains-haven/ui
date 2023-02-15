@@ -13,27 +13,7 @@
    [:p
     [$link "Privacy Policy" "/privacy-policy"]
     " - "
-    [$link "Terms & Conditions" "/terms-and-conditions"]]
-   [:p "Wanna see how the infrastructure is holding up?"]
-   [:p
-    [:a
-     {:href "https://status.captains-haven.org"
-      :target "_blank"}
-     "Service status page"]]
-   [:p "Trying to contact us? Write us!"]
-   [:p
-    [:a
-     {:href "mailto:hello@captains-haven.org"
-      :target "_blank"}
-     "hello@captains-haven.org"]]
-   [:p "Want to see how this website was made or contribute some cool feature/bugfix?"]
-   [:p
-    [:a
-     {:href "https://codeberg.org/captains-haven/ui"
-      :target "_blank"}
-     "https://codeberg.org/captains-haven/ui"]]
-   [:p "We keep a list of all the changes happening to the platform over here"]
-   [$link "Changelog" "/changelog"]
+    [$link "Terms & Conditions" "/terms-and-conditions"]] 
    [:p "Some version numbers and stuff:"]
    [:div
     [:pre

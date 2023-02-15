@@ -4,6 +4,7 @@
    [portal.router :refer [setup-router!]]
 
    [portal.components.menu :refer [$menu]]
+   [portal.components.footer :refer [$footer]]
    [portal.components.link :refer [$link]]
    [portal.components.debug :refer [$debug]] 
 
@@ -25,6 +26,7 @@
      [$menu]
      [:div.page-wrapper
       [$page-component page-args]]
+     [$footer]
      [$debug @app-state]]))
 
 (defn render []

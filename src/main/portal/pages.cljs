@@ -16,6 +16,7 @@
    [portal.pages.blueprints.view :refer [$blueprints-view-page]]
    [portal.pages.blueprints.edit :refer [$blueprints-edit-page]]
    
+   [portal.pages.contact :refer [$contact-page]]
    [portal.pages.news :refer [$news-page]]))
 
 (def pages
@@ -41,6 +42,7 @@
    :signup $signup-page
    :login $login-page
    
+   :contact $contact-page
    :news $news-page})
 
 (defn init! []
