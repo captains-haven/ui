@@ -5,5 +5,5 @@
 (def dev-default-token "728171a506ac54140d1b71fff95283e54f21c671a240744ca6877b2f26129aba35f39b8df96afc627c2d2d6a0ce10428f6f503e444c8f873bc9640c864b0271cd8ed5618ee43e1a0c4ac04de28facd877842b96418e289149d950e3b10e7bb51ed22292593c6c6f523eb99aaf4f7fec8a2d82109e1c8be4ea768b9424ba0b96a")
 
 (def api-root
-  ;; "https://captains-haven.org/"
-  "http://localhost:1337/api/")
+  "https://api.captains-haven.org/")
+  ;; "http://localhost:1337/api/")

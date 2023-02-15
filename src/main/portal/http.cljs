@@ -7,8 +7,8 @@
 
 (defn user-or-default-token []
   (or (:user-token @app-state)
-      ;; default-token
-      dev-default-token
+      default-token
+      ;; dev-default-token
       ))
 
 (defn fetch-resource [resource]
