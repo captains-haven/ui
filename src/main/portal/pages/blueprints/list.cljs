@@ -8,6 +8,7 @@
    [portal.auth :refer [is-logged-in]]
    [portal.http :refer [fetch-resource-with-sort]]
    [portal.router :refer [go-to]]
+   [portal.components.error :refer [$error]]
    [portal.components.forms.select :refer [$select]]
    [portal.components.blueprints.list :refer [$blueprints-list $blueprints-list-new]]))
 
@@ -28,27 +29,31 @@
           []
           items))
 
-(defn handle-fetch-resources [loading? items sort-by direction]
+(defn handle-fetch-resources [loading? error items sort-by direction]
   (reset! loading? true)
+  (reset! error nil)
+  (reset! items [])
   (go
     (let [found-items (<p! (fetch-resource-with-sort "blueprints" (get
                                                                    sort-by-options
                                                                    sort-by) direction))]
-      (reset! items (transform-items (:data found-items)))
+      (if (:error found-items)
+        (reset! error (:error found-items))
+        (reset! items (transform-items (:data found-items))))
       (reset! loading? false))))
 
 (defn $blueprints-list-page [{:keys [sort-by direction]
                               :or {sort-by "latest"
                                    direction "desc"}}]
   (let [loading? (r/atom true)
+        error (r/atom nil)
         items (r/atom [])]
    (r/create-class
     {:component-did-mount
      (fn []
-       (handle-fetch-resources loading? items sort-by direction))
+       (handle-fetch-resources loading? error items sort-by direction))
      :component-did-update
      (fn [this [_ old-args]]
-       (pprint "Update")
        (let [[_ new-args] (r/argv this)]
          (when (or (not= (:sort-by old-args)
                          (:sort-by new-args))
@@ -56,6 +61,7 @@
                          (:direction new-args)))
            (handle-fetch-resources
             loading?
+            error
             items
             (or (:sort-by new-args) "latest")
             (or (:direction new-args) "desc")))))
@@ -63,7 +69,6 @@
      (fn [{:keys [sort-by direction]
            :or {sort-by "latest"
                 direction "desc"}}]
-       (pprint [sort-by direction])
        [:div
         [:div
          {:style {:display "flex"
@@ -95,4 +100,17 @@
              :value "desc"}
             {:name "Ascending"
              :value "asc"}]]]]
+        (when @error
+          [:div
+           [$error
+            "Error code "
+            (:status @error)
+            " - "
+            (:message @error)
+            [:br][:br]
+            "Please retry in a bit or contact "
+            [:a
+             {:href "mailto:hello@captains-haven.org"}
+             "hello@captains-haven.org"]
+            " if the issue persists."]])
         [$blueprints-list-new @items @loading?]])})))
