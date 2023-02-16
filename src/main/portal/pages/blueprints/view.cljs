@@ -11,16 +11,16 @@
 (defn set-metadata! [{:keys [title author description thumbnail]}]
   (add-or-edit-metadata!
    :og_title
-   (str "Captain's Haven - Blueprint: " title " by " (:username author)))
+   (str "Blueprint: " title " by " (:username author)))
   (add-or-edit-metadata!
    :og_image
    (str
     "https://uploads.captains-haven.org"
-    (-> thumbnail :formats :thumbnail :url)))
+    (-> thumbnail :url)))
   (if (and description (not= description ""))
     (add-or-edit-metadata!
      :og_description
-     (str "Description: " description))
+     description)
     (add-or-edit-metadata! :og_description "User blueprint for Captain of Industry")))
 
 (defn $blueprints-view-page [{:keys [slug]}]
