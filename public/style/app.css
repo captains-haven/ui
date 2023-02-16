@@ -1,4 +1,4 @@
-html, body {
+body {
     background-color: #242323;
     color: rgb(240, 240, 240);
 }
@@ -303,6 +303,11 @@ button:disabled {
     padding: 1px 20px;
 }
 
+.news-list-item {
+    margin-bottom: 40px;
+    margin-top: 30px;
+}
+
 .fullscreen-background {
     position: absolute;
     top: 0px;
@@ -334,4 +339,41 @@ a.external:after {
     background-repeat: no-repeat;
     background-size: contain;
     display: inline-block;
+}
+
+/* Theme Light Overrides */
+
+body.theme-light {
+    background-color: white;
+    color: black;
+}
+
+.theme-light .footer, .theme-light .menu {
+    background-color: #dbdbdb;
+}
+
+.theme-light a {
+    color: orange;
+}
+
+.theme-light .menu .menu-link a, .theme-light  .footer .footer-link a {
+    color: orange;
+}
+
+.theme-light .blueprint {
+    background-color: #9b9b9b;
+}
+
+.theme-light .items-list {
+    background-color: #9b9b9b;
+}
+
+.theme-light .blueprint .blueprint-title a {
+    color: black;
+}
+
+.theme-light .link-btn, .theme-light button {
+    border: 1px solid #fca23a;
+    color: black;
+    background-color: #fca23a;
 }

@@ -15,6 +15,8 @@
 (defn $app []
   (let [$page-component (:page-component @app-state)
         page-args (:page-args @app-state)]
+    (set! (.-className js/document.body)
+          (str "theme-" (:theme @app-state)))
     [:div
      [$link
       [:div.app-title
