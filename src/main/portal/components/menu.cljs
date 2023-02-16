@@ -46,12 +46,13 @@
                  :path "/media"}]
                [;;{:title "About"
                 ;; :path "/about"}
-                ;; {:title "Login"
-                ;;  :path "/login"}
+                (when-not (is-logged-in)
+                 {:title "Login"
+                  :path "/login"})
                 {:title (fn []
                           (if (is-logged-in)
                             "Logout"
-                            "Signup / Login"))
+                            "Signup"))
                  :action (fn []
                            (if (is-logged-in)
                              (do (.clear js/localStorage)
@@ -68,6 +69,7 @@
      [:div.menu-right
       (doall
        (map (fn [item]
-              ^{:key (:path item)}
-              [$menu-item item])
+              (when item
+                ^{:key (:path item)}
+                [$menu-item item]))
             (second items)))]]))

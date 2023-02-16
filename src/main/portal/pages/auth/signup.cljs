@@ -4,8 +4,7 @@
    [portal.components.text-input :refer [$text-input]]
    [portal.components.btn :refer [$btn]]
    [portal.components.link :refer [$link]]
-   [portal.components.loading :refer [$loading]]
-   [portal.components.debug :refer [$debug]]
+   [portal.components.loading :refer [$loading]] 
 
    [cljs.core.async :refer [go]]
    [cljs.core.async.interop :refer-macros [<p!]]
@@ -33,42 +32,44 @@
      {:reagent-render
       (fn []
         [:div.signup-page
-         [:h2 "Signup"]
-         (when-let [err (-> @s :res :error)]
-           [:div
-            [:div (:name err)]
-            [:div (:message err)]])
-         [$text-input {:label "Username"
-                       :disabled (is-loading)
-                       :value (:username @s)
-                       :onChange (handle-change :username)
-                       :type "text"
-                       :placeholder "Username"}]
-         [$text-input {:label "Email"
-                       :disabled (is-loading)
-                       :value (:email @s)
-                       :onChange (handle-change :email)
-                       :type "email"
-                       :placeholder "email@example.com"}]
-         [:label
-          {:class (when (is-loading) "disabled")}
-          [:input
-           {:type "checkbox"
-            :onChange (fn [ev]
-                        (let [v (-> ev .-target .-checked boolean)]
-                          (reset! accept? v)))}]
-          "Accept "
-          [$link "Terms & Conditions" "/terms-and-conditions"]
-          " and "
-          [$link "Privacy Policy" "/privacy-policy"]
-          "?"]
-         [$btn {:label "Signup"
-                :disabled (or (not @accept?) (is-loading))
-                :onClick (fn []
-                           (submit-signup))}]
-         (when (is-loading)
-           [$loading])
-         (when (-> @s :res :sent)
-           [:div
-            "Email has been sent to " (-> @s :res :email) ". Please check your inbox to confirm."])
-         [$debug @s]])})))
+         [:div
+          {:style {:max-width 400}}
+          [:h2 "Signup"]
+          (when-let [err (-> @s :res :error)]
+            [:div
+             [:div (:name err)]
+             [:div (:message err)]])
+          [$text-input {:label "Username"
+                        :disabled (is-loading)
+                        :value (:username @s)
+                        :onChange (handle-change :username)
+                        :type "text"
+                        :placeholder "Username"}]
+          [$text-input {:label "Email"
+                        :disabled (is-loading)
+                        :value (:email @s)
+                        :onChange (handle-change :email)
+                        :type "email"
+                        :placeholder "email@example.com"}]
+          [:label
+           {:class (when (is-loading) "disabled")}
+           [:input
+            {:type "checkbox"
+             :style {:margin-right 5}
+             :onChange (fn [ev]
+                         (let [v (-> ev .-target .-checked boolean)]
+                           (reset! accept? v)))}]
+           "Accept "
+           [$link "Terms & Conditions" "/terms-and-conditions"]
+           " and "
+           [$link "Privacy Policy" "/privacy-policy"]
+           "?"]
+          [$btn {:label "Signup"
+                 :disabled (or (not @accept?) (is-loading))
+                 :onClick (fn []
+                            (submit-signup))}]
+          (when (is-loading)
+            [$loading])
+          (when (-> @s :res :sent)
+            [:div
+             "Email has been sent to " (-> @s :res :email) ". Please check your inbox to confirm."])]])})))
