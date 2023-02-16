@@ -1,2 +1,9 @@
 User-agent: *
 Allow: /
+
+# Disable authentication / logged in pages
+Disallow: /login
+Disallow: /signup
+Disallow: /blueprints/new
+
+Sitemap: https://admin.captains-haven.org/sitemap/index.xml
