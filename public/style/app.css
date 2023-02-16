@@ -309,7 +309,7 @@ button:disabled {
 }
 
 .fullscreen-background {
-    position: absolute;
+    position: fixed;
     top: 0px;
     right: 0px;
     left: 0px;
@@ -320,11 +320,21 @@ button:disabled {
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
+    overflow: hidden;
+    margin: 0px !important;
+    padding: 0px;
+}
+
+.fullscreen-modal {
+    margin: 0px !important;
+    padding: 0px;
 }
 
 .fullscreen-modal img {
     max-width: 95vw;
-    min-width: 90vw;
+    /* min-width: 90vw; */
+    max-height: 95vw;
+    object-fit: contain;
 }
 
 a.external:after {
