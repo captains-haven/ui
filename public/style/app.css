@@ -304,6 +304,23 @@ button:disabled {
     max-width: 700px;
 }
 
+figure.image {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+figure {
+    font-style: italic;
+    font-size: 12px;
+    text-align: right;
+}
+
+.news-item img {
+    max-width: 700px;
+    border-radius: 2px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
 .news-item blockquote {
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 5px;
