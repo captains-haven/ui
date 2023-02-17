@@ -66,6 +66,10 @@
                [$text-input {:label "Username"
                              :disabled (is-loading)
                              :value (:username @s)
+                             :onKeyUp (fn [ev]
+                                        (let [keyCode (.-keyCode ev)]
+                                          (when (= keyCode 13)
+                                            (submit-signup))))
                              :onChange (handle-change :username)
                              :type "text"
                              :placeholder "Username"}]
