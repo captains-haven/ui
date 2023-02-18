@@ -11,6 +11,8 @@
                 ["/blueprints" :blueprints]
                 
                 ["/blueprints/sorted-by/:sort-by/:direction" :blueprints]
+
+                ["/blueprints/sorted-by/:sort-by/:direction/search/:search-term" :blueprints]
                 
                 ["/blueprints/new" :blueprints-new]
                 ["/blueprints/:slug" :blueprint]

@@ -24,7 +24,11 @@
        (:title data)
        full-href]]
      [:div
-      "By " (-> data :author :username)]
+      "By "
+      [$link
+       (-> data :author :username)
+       (str "/blueprints/sorted-by/views/desc/search/"
+            (-> data :author :username))]]
      (when full-view?
        [:div
         "Description:"
