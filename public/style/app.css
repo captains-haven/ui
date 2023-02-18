@@ -91,6 +91,15 @@ a {
     white-space: break-spaces;
 }
 
+@supports (-webkit-line-clamp: 2) {
+    .blueprint.full-blueprint .blueprint-title {
+        height: auto;
+        overflow-wrap: break-word;
+        white-space: break-spaces;
+        display: block;
+    }
+}
+
 .ellipsis-overflow {
     text-overflow: ellipsis;
     overflow: hidden;
