@@ -103,6 +103,7 @@ a {
 .ellipsis-overflow {
     text-overflow: ellipsis;
     overflow: hidden;
+    color: #ffa500;
 }
 
 .blueprint-image {
@@ -130,7 +131,7 @@ a {
 }
 
 .blueprint .blueprint-title a {
-    color: white;
+    color: #ffa500;
 }
 
 .blueprint pre {
