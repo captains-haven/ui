@@ -1,0 +1,7 @@
+pipeline:
+  build:
+    image: strategicblue/cljs-builder:2023-02-20_06-01-54_d8db893d8198c812e217c01cd05de2ee6264bdf6
+    commands:
+      - npm install
+      - npx shadow-cljs release app
+      - ls public/
