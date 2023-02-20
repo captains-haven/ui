@@ -14,7 +14,7 @@
    (c "Contact" "/contact-us")
    (c "News" "/news")
    (c "Changelog" "/changelog")
-   (c "Chat" "https://discord.com/channels/803508556325584926/1076232756675231754")
+   (c "Chat" "/chat")
    (c "Status" "https://status.captains-haven.org/")
    (c "Source Code" "https://codeberg.org/captains-haven/ui")])
 

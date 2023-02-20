@@ -17,7 +17,8 @@
    [portal.pages.blueprints.edit :refer [$blueprints-edit-page]]
    
    [portal.pages.contact :refer [$contact-page]]
-   [portal.pages.news :refer [$news-page]]))
+   [portal.pages.news :refer [$news-page]]
+   [portal.pages.chat :refer [$chat-page]]))
 
 (def pages
   {:home $home-page
@@ -43,6 +44,7 @@
    :login $login-page
    
    :contact $contact-page
+   :chat $chat-page
    :news $news-page})
 
 (defn init! []

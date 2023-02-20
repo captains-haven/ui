@@ -29,6 +29,7 @@
                 ["/login" :login]
                 ["/contact-us" :contact]
                 ["/news" :news]
+                ["/chat" :chat]
                 ["/news/:slug" :news]]))
 
 (defn get-page-from-path [path]
