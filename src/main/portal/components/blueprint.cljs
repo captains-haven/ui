@@ -17,6 +17,9 @@
   (let [full-href (str "/blueprints/" (:slug data))]
     [:div.blueprint
      {:class (when full-view? "full-blueprint")}
+     (when (:is_archived data)
+      [:h4.ribbon
+       "Archived"])
      [:div.blueprint-title
       {:class (when-not full-view? "ellipsis-overflow")
        :title (:title data)}

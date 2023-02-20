@@ -13,7 +13,8 @@
    [portal.components.debug :refer [$debug]]
    [portal.components.file-upload :refer [$file-upload]]
    [portal.components.text-input :refer [$text-input]]
-   [portal.components.blueprint :refer [$blueprint-new]]))
+   [portal.components.blueprint :refer [$blueprint-new]]
+   [portal.components.forms.checkbox :refer [$checkbox]]))
 
 (defn $blueprints-edit-page [{:keys [slug]}]
   (let [is-loading (r/atom false)
@@ -51,13 +52,18 @@
                         :disabled true ;; can never update title has we use it for urls 
                         :value (:title @item)
                         :placeholder "Blueprint Title"}]
-          [$text-input {:label "Description"
-                        :disabled @is-loading
-                        :onChange (handle-text-input-change-nested item [:description])
-                        :value (:description @item)
-                        :multiline true
-                        :placeholder "Description"}]
+          [:div
+           {:style {:margin-top 10
+                    :margin-bottom 10}}
+           [$text-input {:label "Description"
+                         :disabled @is-loading
+                         :onChange (handle-text-input-change-nested item [:description])
+                         :value (:description @item)
+                         :multiline true
+                         :placeholder "Description"}]]
           [:label
+           {:style {:margin-top 10
+                    :margin-bottom 10}}
            [:div "Thumbnail"]
            [$file-upload
             {:disabled @is-loading
@@ -70,6 +76,29 @@
                          (swap! item assoc :thumbnail {:url full-url
                                                        :formats {:thumbnail {:url thumbnail-url}}}))
                        (reset! is-loading false))}]]
+          [:div
+           {:style {:margin-top 10
+                    :margin-bottom 10}}
+           [$checkbox
+            "Archive?"
+            (:is_archived @item)
+            (fn [checked?]
+              (swap! item assoc :is_archived checked?))]
+           [:div
+            {:style {:margin-top 5
+                     :font-size 14}}
+            [:small
+             "Archiving a blueprint means it won't be visible on the main blueprints page or in the search, but people can still see the blueprint if they navigate to the complete url"]]
+           (when (:is_archived @item)
+             [:div
+              {:style {:margin-top 10
+                       :margin-bottom 10}}
+              [$text-input {:label "Replacement blueprint"
+                            :value (:replacement_blueprint_url @item)
+                            :placeholder "URL to new blueprint"
+                            :onChange (fn [ev]
+                                        (let [new-val (-> ev .-target .-value)]
+                                          (swap! item assoc :replacement_blueprint_url new-val)))}]])]
           [:div
            {:style {:margin-top 15}}
            [:button.link-btn

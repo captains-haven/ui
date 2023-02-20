@@ -4,6 +4,7 @@
    [cljs.core.async.interop :refer-macros [<p!]] 
    [reagent.core :as r]
    [portal.http :refer [fetch-resource-by-slug]]
+   [portal.components.error :refer [$error]]
    [portal.metatags :refer [add-or-edit-metadata!]]
    [portal.components.blueprint :refer [$blueprint-new]]
    [portal.components.blueprints.items-list :refer [$blueprint-items]]))
@@ -37,6 +38,21 @@
       :reagent-render
       (fn [{:keys [_slug]}]
         [:div.blueprint-page
-         [$blueprint-new @item true]
-         (when @blueprint-data
-           [$blueprint-items @blueprint-data])])})))
+         (when (:is_archived @item)
+           [:div
+            {:style {:margin "30px auto"
+                     :width 670}}
+            [$error
+             [:div
+              "This blueprint have been archived. This means the author have indicated you shouldn't use this anymore. "
+              (when (and (:replacement_blueprint_url @item)
+                         (not= (:replacement_blueprint_url @item) ""))
+                [:a
+                 {:style {:color "rgb(18, 37, 187)"
+                          :text-decoration "underline"}
+                  :href (:replacement_blueprint_url @item)}
+                 "Replacement blueprint"])]]])
+         [:div.blueprint-page-layout
+          [$blueprint-new @item true]
+          (when @blueprint-data
+            [$blueprint-items @blueprint-data])]])})))
