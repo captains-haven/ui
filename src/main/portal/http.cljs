@@ -42,9 +42,10 @@
 (defn fetch-resource-with-sort-and-search [resource sort-by direction search-term]
   (let [query {"populate" "*"
                "sort" (str sort-by ":" direction)
-               "filters" {"$or" [{"title" {"$contains" search-term}}
-                                 {"description" {"$contains" search-term}}
-                                 {"author" {"username" {"$contains" search-term}}}]}
+               "filters" {"$and" [{"is_archived" {"$eq" "false"}}
+                                  {"$or" [{"title" {"$contains" search-term}}
+                                          {"description" {"$contains" search-term}}
+                                          {"author" {"username" {"$contains" search-term}}}]}]}
                "pagination[pageSize]" "100"}
         query-str (querystring query)]
    (.then
