@@ -27,7 +27,10 @@
    [portal.components.forms.select]
    [portal.components.news.item]
    [portal.components.news.list]
-   [portal.components.zoomable-image])
+   [portal.components.zoomable-image]
+   [portal.components.reviews.new-review]
+   [portal.components.reviews.review]
+   [portal.components.reviews.review-list])
   ;; (:require-macros
   ;;  [audition.macros :refer [into-var]]
   ;;  )
@@ -47,7 +50,10 @@
    "portal.components.news.item/$news-item" portal.components.news.item/$news-item
    "portal.components.news.list/$news-list-item" portal.components.news.list/$news-list-item
    "portal.components.news.list/$news-list" portal.components.news.list/$news-list
-   "portal.components.zoomable-image/$zoomable-image" portal.components.zoomable-image/$zoomable-image})
+   "portal.components.zoomable-image/$zoomable-image" portal.components.zoomable-image/$zoomable-image
+   "portal.components.reviews.new-review/$new-review" portal.components.reviews.new-review/$new-review
+   "portal.components.reviews.review/$review" portal.components.reviews.review/$review
+   "portal.components.reviews.review-list/$review-list" portal.components.reviews.review-list/$review-list})
 
 (defn only-components [m]
   (into
@@ -79,7 +85,10 @@
      (ns-interns 'portal.components.forms.select)
      (ns-interns 'portal.components.news.item)
      (ns-interns 'portal.components.news.list)
-     (ns-interns 'portal.components.zoomable-image)))))
+     (ns-interns 'portal.components.zoomable-image)
+     (ns-interns 'portal.components.reviews.new-review)
+     (ns-interns 'portal.components.reviews.review)
+     (ns-interns 'portal.components.reviews.review-list)))))
 
 (defn sort-components [components]
   (into
@@ -143,10 +152,20 @@
                   (swap! state assoc index new-val)))
     :value (get @state index)}])
 
+(defn $number-editor [state index]
+  [:input
+   {:type "number"
+    :onChange (fn [ev]
+                (let [new-val (-> ev .-target .-value)]
+                  (swap! state assoc index new-val)))
+    :value (get @state index)}])
+
+
 (def args-editors
   {:string $string-editor
    :edn $edn-editor
-   :boolean $boolean-editor})
+   :boolean $boolean-editor
+   :number $number-editor})
 
 (defn create-args [args] 
   (mapv

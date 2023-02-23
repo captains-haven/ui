@@ -2,7 +2,8 @@
   (:require
    [reagent.core :as r]
    [cljs.core.async :refer [go]]
-   [cljs.core.async.interop :refer [<p!]]))
+   [cljs.core.async.interop :refer [<p!]]
+   [portal.components.loading :refer [$loading]]))
 
 (defn $blueprint-items-list [items]
   (fn []
@@ -34,7 +35,7 @@
               sorted-items))]])))
 
 (defn $blueprint-items [blueprint-data]
-  (let [is-loading (r/atom false)
+  (let [is-loading (r/atom true)
         items (r/atom {})
         fetch-items (fn [blueprint-data]
                       (reset! is-loading true)
@@ -53,5 +54,7 @@
       :reagent-render
       (fn [_blueprint-data]
         [:div.items-list
-         (when-not (empty? @items)
-           [$blueprint-items-list @items])])})))
+         (if @is-loading
+           [$loading]
+           (when-not (empty? @items)
+             [$blueprint-items-list @items]))])})))

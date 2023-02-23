@@ -119,11 +119,22 @@ a {
 
 .blueprint-page-layout {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     align-items: start;
-    max-width: 700px;
+    /* max-width: 1200px; */
     margin: 0px auto;
-    flex-wrap: wrap;
+    flex-flow: row wrap;
+}
+
+/* .blueprint-page-layout::after {
+    content: "";
+    flex: auto;
+  } */
+
+.blueprint-page-layout > div {
+    /* margin: 20px auto; */
+    margin-bottom: 20px;
+    margin-right: 20px;
 }
 
 .items-list {
@@ -279,7 +290,7 @@ a {
 }
 
 button:disabled {
-    opacity: 0.8;
+    opacity: 0.7;
     cursor: not-allowed;
   } 
 
@@ -288,6 +299,11 @@ button:disabled {
     color: black;
     background-color: #fca23a;
     border: 1px solid #fca23a;
+}
+
+.link-btn.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .debug {
@@ -420,6 +436,47 @@ a.external:after {
   .ribbon:after {
     left:100%;
   }
+
+.review {
+    max-width: 450px;
+    padding: 5px;
+}
+
+.new-review {
+    background-color: #2f2e2e;
+    padding: 20px;
+}
+
+.review-list {
+    max-width: 450px;
+    background-color: #2f2e2e;
+    padding: 10px;
+}
+
+.review-meta {
+    display: flex;
+    /* justify-content: space-between; */
+    flex-wrap: wrap;
+    flex-direction: row;
+    max-width: 450px;
+}
+
+.review-meta-field {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 20px;
+}
+
+.review-message {
+    text-align: justify;
+    text-justify: distribute;
+}
+
+.review-message p {
+    margin: 0px;
+}
 
 /* Theme Light Overrides */
 

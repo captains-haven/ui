@@ -5,6 +5,12 @@
 (defn is-logged-in []
   (boolean (:user @app-state)))
 
+(defn current-user-id []
+  (-> @app-state :user :id))
+
+(defn current-username []
+  (-> @app-state :user :username))
+
 (defn trigger-login [email username]
   (.then
    (.then
