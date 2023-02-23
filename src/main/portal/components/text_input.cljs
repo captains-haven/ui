@@ -20,7 +20,8 @@
     [label-el label]
     (if multiline
       [:textarea
-       {:onChange onChange}
+       {:style input-style
+        :onChange onChange}
        (or value placeholder)]
       [:input
        {:style input-style
