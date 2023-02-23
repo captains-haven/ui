@@ -4,8 +4,8 @@
    [portal.components.reviews.review :refer [$review]]))
 
 (defn $review-list
-  {:audition {:args [:reviews]}}
-  [reviews]
+  {:audition {:args [:reviews :boolean]}}
+  [reviews is-logged-in?]
   [:div.review-list
    [:div
     {:style {:font-size 22
@@ -15,10 +15,13 @@
    (if (= (count reviews) 0)
      [:div
       {:style {:margin "10px 5px"}}
-      "No reviews found, be a kind soul and leave the first one :)"]
+      (if is-logged-in?
+        "No reviews found, be a kind soul and leave the first one :)"
+        "No reviews found. Login and be the first to submit one :)")]
      (interpose
-      [:hr
-       {:style {:margin "10px 0px"}}]
+      [:div
+       {:style {:margin "10px 0px"
+                :border-bottom "2px solid #242323"}}]
       (doall
        (map (fn [review]
               [$review review])

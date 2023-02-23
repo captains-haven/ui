@@ -5,7 +5,7 @@
    [clojure.pprint :refer [pprint]]
    [reagent.core :as r]
    [portal.http :refer [fetch-resource-by-slug create-resource fetch-resource-with-qs]]
-   [portal.auth :refer [is-logged-in current-user-id]]
+   [portal.auth :refer [is-logged-in current-user-id current-username]]
    [portal.components.error :refer [$error]]
    [portal.components.loading :refer [$loading]]
    [portal.metatags :refer [add-or-edit-metadata!]] 
@@ -28,11 +28,6 @@
      :og_description
      description)
     (add-or-edit-metadata! :og_description "User blueprint for Captain of Industry")))
-
-(defn submit-review [data]
-  (go
-    (let [res (<p! (create-resource "blueprint-ratings" data))]
-      (pprint res))))
 
 (defn flatten-item [item]
   (merge {:id (:id item)}
@@ -63,20 +58,31 @@
 
 (defn $blueprints-view-page [{:keys [slug]}]
   (let [loading? (r/atom true)
+        submitting-review? (r/atom false)
         item (r/atom nil)
         reviews (r/atom [])
-        blueprint-data (r/atom nil)]
+        blueprint-data (r/atom nil)
+        fetch-blueprint (fn []
+                         (go
+                           (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))
+                                 found-ratings (<p! (fetch-reviews (:id found-item)))]
+                             (set-metadata! found-item)
+                             (reset! item found-item)
+                             (reset! blueprint-data (:blueprint_data found-item))
+                             (reset! reviews found-ratings)
+                             (reset! loading? false))))
+        submit-review (fn [data]
+                        (reset! submitting-review? true)
+                        (go
+                          (let [res (<p! (create-resource "blueprint-ratings" data))]
+                            (reset! submitting-review? false)
+                            (if (:error res)
+                              (.alert js/window (with-out-str (pprint (:error res))))
+                              (fetch-blueprint)))))]
     (r/create-class
      {:component-did-mount
       (fn []
-        (go
-          (let [found-item (<p! (fetch-resource-by-slug "blueprints" slug))
-                found-ratings (<p! (fetch-reviews (:id found-item)))]
-            (set-metadata! found-item)
-            (reset! item found-item)
-            (reset! blueprint-data (:blueprint_data found-item))
-            (reset! reviews found-ratings)
-            (reset! loading? false))))
+        (fetch-blueprint))
       :reagent-render
       (fn [{:keys [_slug]}]
         [:div.blueprint-page
@@ -103,18 +109,26 @@
                     "Replacement blueprint"])]]])
             [:div.blueprint-page-layout
              [$blueprint-new @item true]
+             (when @blueprint-data
+               [$blueprint-items @blueprint-data])
              [:div.blueprint-reviews
               {:style {:max-width 450
                        :flex-shrink 1
                        :min-width 200
                        }}
-              (when (is-logged-in)
+              (when (and (is-logged-in)
+                         (not (some (fn [author_id]
+                                      (= author_id (current-user-id)))
+                                    (map #(-> % :author :id)
+                                         @reviews)))
+                         (not (=
+                               (-> @item :author :username)
+                               (current-username))))
                 [:div
                  {:style {:margin-bottom 20}}
                  [$new-review
-                  {:on-submit submit-review
+                  {:loading? @submitting-review?
+                   :on-submit submit-review
                    :author_id (current-user-id)
                    :blueprint_id (:id @item)}]])
-              [$review-list @reviews]]
-             (when @blueprint-data
-               [$blueprint-items @blueprint-data])]])])})))
+              [$review-list @reviews]]]])])})))

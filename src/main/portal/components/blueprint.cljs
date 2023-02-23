@@ -73,7 +73,9 @@
      [:div
       "Views: " (or (:views data) 1)]
      [:div
-      "Average Score: " (:average_rating_score data)]
+      "Average Score: "
+      (:average_rating_score data)
+      "/5"]
      (when (and full-view?
                 (= (-> data :author :username)
                    (-> @app-state :user :username)))

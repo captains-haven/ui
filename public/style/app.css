@@ -119,20 +119,20 @@ a {
 
 .blueprint-page-layout {
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: start;
     /* max-width: 1200px; */
     margin: 0px auto;
     flex-flow: row wrap;
 }
 
-.blueprint-page-layout::after {
+/* .blueprint-page-layout::after {
     content: "";
     flex: auto;
-  }
+  } */
 
 .blueprint-page-layout > div {
-    margin: 20px auto;
+    /* margin: 20px auto; */
     margin-bottom: 20px;
     margin-right: 20px;
 }
@@ -290,7 +290,7 @@ a {
 }
 
 button:disabled {
-    opacity: 0.8;
+    opacity: 0.7;
     cursor: not-allowed;
   } 
 
@@ -299,6 +299,11 @@ button:disabled {
     color: black;
     background-color: #fca23a;
     border: 1px solid #fca23a;
+}
+
+.link-btn.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .debug {

@@ -14,7 +14,8 @@
 
 (def sort-by-options
   {"latest" "id"
-   "views" "views"})
+   "views" "views"
+   "rating" "average_rating_score"})
 
 (defn flatten-item [item]
   (merge {:id (:id item)}
@@ -150,6 +151,8 @@
                 (go-to (str "/blueprints/sorted-by/" new-sort-by "/" direction "/search/" search-term))))
             [{:name "Latest"
               :value "latest"}
+             {:name "Rating"
+              :value "rating"}
              {:name "Views"
               :value "views"}]]]
           [:span
