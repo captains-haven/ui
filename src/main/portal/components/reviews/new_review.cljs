@@ -50,7 +50,7 @@
          [:div
           {:style {:font-size 12
                    :margin-top 5}}
-          "Please be direct and honest but kind and respectful with your feedback as well"]]
+          "Please be direct and honest but kind and respectful with your feedback as well. For now, neither the rating or comment of a review can be modified after submission."]]
         [:button.link-btn
          {:disabled loading?
           :className (when loading? "disabled")
