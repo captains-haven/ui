@@ -1,0 +1,2 @@
+{:test "Text in :en"
+ :only-in-en "Only in :en"}

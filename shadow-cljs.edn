@@ -15,7 +15,8 @@
  [[reagent "1.1.1"]
   [org.clojure/core.async "1.6.673"]
   [funcool/bide "1.7.0"]
-  [io.github.nextjournal/markdown "0.4.138"]]
+  [io.github.nextjournal/markdown "0.4.138"]
+  [com.taoensso/tempura "1.5.3"]]
 
  :builds
  {:app {:target :browser
