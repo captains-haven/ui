@@ -1,13 +1,18 @@
 (ns portal.metatags)
 
 (def possible-metatags
-  {:og_title "meta[property=\"og:title\"]"
+  {:title "title"
+   :description "meta[name=\"description\"]"
+   
+   :og_title "meta[property=\"og:title\"]"
    :og_site_name "meta[property=\"og:site_name\"]"
    :og_description "meta[property=\"og:description\"]"
    :og_image "meta[property=\"og:image\"]"})
 
 (def possible-properties
-  {:og_title "og:title"
+  {:title "title"
+   :description "description"
+   :og_title "og:title"
    :og_site_name "og:site_name"
    :og_description "og:description"
    :og_image "og:image"})
@@ -20,7 +25,9 @@
 
 (defn edit-metatag! [selector new-value]
   (let [el (.querySelector js/document selector)]
-    (.setAttribute el "content" new-value)))
+    (if (= selector "title")
+      (set! (.-innerText el) new-value)
+      (.setAttribute el "content" new-value))))
 
 (defn create-metatag! [property content]
   (let [el (.createElement
@@ -42,5 +49,5 @@
   (create-metatag! (:og_title possible-properties) "Yes")
   (edit-metatag! (:og_title possible-metatags) "no")
 
-  (add-or-edit-metadata! :og_site_name "hello")
+  (add-or-edit-metadata! :title "hello")
   )

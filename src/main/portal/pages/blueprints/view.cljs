@@ -16,6 +16,9 @@
 
 (defn set-metadata! [{:keys [title author description thumbnail]}]
   (add-or-edit-metadata!
+   :title
+   (str title " Blueprint - Captain's Haven"))
+  (add-or-edit-metadata!
    :og_title
    (str "Blueprint: " title " by " (:username author)))
   (add-or-edit-metadata!
@@ -24,9 +27,13 @@
     "https://uploads.captains-haven.org"
     (-> thumbnail :url)))
   (if (and description (not= description ""))
-    (add-or-edit-metadata!
-     :og_description
-     description)
+    (do
+      (add-or-edit-metadata!
+       :description
+       (str title " blueprint for Captain of Industry"))
+      (add-or-edit-metadata!
+       :og_description
+       description))
     (add-or-edit-metadata! :og_description "User blueprint for Captain of Industry")))
 
 (defn flatten-item [item]
@@ -83,6 +90,11 @@
      {:component-did-mount
       (fn []
         (fetch-blueprint))
+      :component-will-unmount
+      (fn []
+        (add-or-edit-metadata!
+         :title
+         (str "Captain's Haven - Mods, Blueprints and Maps for Captain of Industry")))
       :reagent-render
       (fn [{:keys [_slug]}]
         [:div.blueprint-page
