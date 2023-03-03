@@ -5,3 +5,5 @@ pipeline:
       - npm install
       - npx shadow-cljs release app
       - ls public/
+    volumes:
+      - /root/.m2:/root/.m2
